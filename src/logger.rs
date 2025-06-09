@@ -49,8 +49,8 @@ where
         let level = event.metadata().level();
         match *level {
             tracing::Level::ERROR => write!(writer, "\x1b[31m[ERROR]\x1b[0m ")?,
-            tracing::Level::WARN => write!(writer, "\x1b[33m[WARN]\x1b[0m  ")?,
-            tracing::Level::INFO => write!(writer, "\x1b[32m[INFO]\x1b[0m  ")?,
+            tracing::Level::WARN => write!(writer, "\x1b[33m[WARN]\x1b[0m ")?,
+            tracing::Level::INFO => write!(writer, "\x1b[32m[INFO]\x1b[0m ")?,
             tracing::Level::DEBUG => write!(writer, "\x1b[34m[DEBUG]\x1b[0m ")?,
             tracing::Level::TRACE => write!(writer, "\x1b[35m[TRACE]\x1b[0m ")?,
         }
