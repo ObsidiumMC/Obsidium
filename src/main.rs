@@ -24,9 +24,9 @@ async fn main() -> Result<(), ServerError> {
             Ok((mut socket, addr)) => {
                 tracing::info!("New connection from {}", addr);
                 tokio::spawn(async move {
-                    let mut buf = [0; 1024]; // Create a buffer to read data into
+                    let mut buffer = [0; 1024]; // Create a buffer to read data into
                     loop {
-                        match socket.read(&mut buf).await {
+                        match socket.read(&mut buffer).await {
                             Ok(0) => {
                                 tracing::info!("Connection closed by {}", addr);
                                 break; // Connection was closed
@@ -37,7 +37,7 @@ async fn main() -> Result<(), ServerError> {
                                     "Received {} bytes from {}: {:?}",
                                     n,
                                     addr,
-                                    &buf[..n]
+                                    &buffer[..n]
                                 );
                                 // Here you would typically parse the Minecraft protocol data
                                 // For now, we're just logging the raw bytes
