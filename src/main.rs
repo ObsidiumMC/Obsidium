@@ -22,18 +22,18 @@ async fn main() -> Result<(), ServerError> {
     loop {
         match listener.accept().await {
             Ok((mut socket, addr)) => {
-                tracing::info!("New connection from {}", addr);
+                tracing::debug!("New connection from {}", addr);
                 tokio::spawn(async move {
                     let mut buffer = [0; 1024]; // Create a buffer to read data into
                     loop {
                         match socket.read(&mut buffer).await {
                             Ok(0) => {
-                                tracing::info!("Connection closed by {}", addr);
+                                tracing::debug!("Connection closed by {}", addr);
                                 break; // Connection was closed
                             }
                             Ok(n) => {
                                 // Data was read successfully
-                                tracing::info!(
+                                tracing::debug!(
                                     "Received {} bytes from {}: {:?}",
                                     n,
                                     addr,
