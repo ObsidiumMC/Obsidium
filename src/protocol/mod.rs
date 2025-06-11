@@ -6,12 +6,14 @@
 pub mod handshake;
 pub mod login;
 pub mod packet;
+pub mod play;
 pub mod status;
 pub mod varint;
 
 pub use handshake::HandshakePacket;
 pub use login::{LoginStart, LoginSuccess};
 pub use packet::Packet;
+pub use play::{ClientInformation, CommandSuggestionsRequest, JoinGame, PluginMessage};
 pub use status::{PingRequest, PongResponse, StatusRequest, StatusResponse};
 
 /// Connection states in the Minecraft protocol

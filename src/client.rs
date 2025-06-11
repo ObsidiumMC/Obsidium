@@ -4,7 +4,8 @@
 
 use crate::protocol::{
     ConnectionState, HandshakePacket, LoginStart, LoginSuccess, Packet, PingRequest, PongResponse, 
-    StatusRequest, StatusResponse, packet::parse_packet_data,
+    StatusRequest, StatusResponse, packet::parse_packet_data, ClientInformation, PluginMessage, 
+    CommandSuggestionsRequest, JoinGame,
 };
 use std::io::Cursor;
 use tokio::{io::AsyncReadExt, net::TcpStream};
@@ -164,14 +165,42 @@ impl ClientConnection {
                     );
                 }
             },
-            _ => {
-                tracing::warn!(
-                    "Unhandled state {:?} for packet {} from {}",
-                    self.state,
-                    packet_id,
-                    self.addr
-                );
-            }
+            ConnectionState::Play => match packet_id {
+                id if id == ClientInformation::packet_id() => {
+                    self.handle_client_information(&data).await?;
+                }
+                id if id == PluginMessage::packet_id() => {
+                    self.handle_plugin_message(&data).await?;
+                }
+                3 => {
+                    // Packet ID 3 seems to be a simple packet with no data
+                    tracing::debug!(
+                        "Received packet ID 3 from {} with {} bytes of data: {:?}",
+                        self.addr,
+                        data.len(),
+                        data
+                    );
+                    // Just acknowledge it without trying to parse complex data
+                }
+                id if id == CommandSuggestionsRequest::packet_id() => {
+                    tracing::debug!(
+                        "Received Command Suggestions Request packet from {} with {} bytes of data: {:?}",
+                        self.addr,
+                        data.len(),
+                        data
+                    );
+                    self.handle_command_suggestions_request(&data).await?;
+                }
+                _ => {
+                    tracing::warn!(
+                        "Unhandled packet {} in play state from {} with {} bytes: {:?}",
+                        packet_id,
+                        self.addr,
+                        data.len(),
+                        data
+                    );
+                }
+            },
         }
 
         Ok(())
@@ -269,6 +298,67 @@ impl ClientConnection {
             self.addr,
             self.state
         );
+
+        // Send Join Game packet to complete the login process
+        let join_game = JoinGame::new();
+        self.send_packet(&join_game).await?;
+
+        Ok(())
+    }
+
+    /// Handle client information packet
+    async fn handle_client_information(
+        &mut self,
+        data: &[u8],
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client_info = ClientInformation::from_packet_data(data)?;
+
+        tracing::debug!(
+            "Client information from {}: locale={}, view_distance={}, chat_mode={}, chat_colors={}, main_hand={}",
+            self.addr,
+            client_info.locale,
+            client_info.view_distance,
+            client_info.chat_mode.0,
+            client_info.chat_colors,
+            client_info.main_hand.0
+        );
+
+        Ok(())
+    }
+
+    /// Handle plugin message packet
+    async fn handle_plugin_message(
+        &mut self,
+        data: &[u8],
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let plugin_message = PluginMessage::from_packet_data(data)?;
+
+        tracing::debug!(
+            "Plugin message from {} on channel '{}' ({} bytes)",
+            self.addr,
+            plugin_message.channel,
+            plugin_message.data.len()
+        );
+
+        Ok(())
+    }
+
+    /// Handle command suggestions request packet
+    async fn handle_command_suggestions_request(
+        &mut self,
+        data: &[u8],
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let suggestions_request = CommandSuggestionsRequest::from_packet_data(data)?;
+
+        tracing::debug!(
+            "Command suggestions request from {}: transaction_id={}, text='{}'",
+            self.addr,
+            suggestions_request.transaction_id.0,
+            suggestions_request.text
+        );
+
+        // For now, we'll just acknowledge the request without sending suggestions
+        // In a full implementation, you would send back a Command Suggestions Response packet
 
         Ok(())
     }
