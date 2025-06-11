@@ -40,23 +40,7 @@ impl StatusResponse {
     /// Create a new status response with default server information
     pub fn new() -> Self {
         let json = format!(
-            r#"{{
-                "version": {{
-                    "name": "{SERVER_VERSION}",
-                    "protocol": {PROTOCOL_VERSION}
-                }},
-                "players": {{
-                    "max": 20,
-                    "online": 0,
-                    "sample": []
-                }},
-                "description": {{
-                    "text": "{SERVER_DESCRIPTION}"
-                }},
-                "favicon": "",
-                "enforcesSecureChat": false,
-                "previewsChat": false
-            }}"#
+            r#"{{"version":{{"name":"{SERVER_VERSION}","protocol":{PROTOCOL_VERSION}}},"players":{{"max":20,"online":0,"sample":[]}},"description":{{"text":"{SERVER_DESCRIPTION}"}},"favicon":"","enforcesSecureChat":false,"previewsChat":false}}"#
         );
         
         Self {
