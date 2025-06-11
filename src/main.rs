@@ -22,7 +22,7 @@ use tokio::net::TcpListener;
 #[tokio::main]
 async fn main() -> Result<(), ServerError> {
     // Initialize logger
-    logger::init_logger();
+    logger::init();
 
     tracing::info!("Starting Obsidium Minecraft Server...");
     let listener = match TcpListener::bind("0.0.0.0:25565").await {

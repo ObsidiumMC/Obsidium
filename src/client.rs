@@ -142,7 +142,7 @@ impl ClientConnection {
     async fn handle_handshake(&mut self, data: &[u8]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let handshake = HandshakePacket::from_packet_data(data)?;
         
-        tracing::info!("Handshake from {}: protocol_version={}, server_address={}, server_port={}, next_state={}", 
+        tracing::debug!("Handshake from {}: protocol_version={}, server_address={}, server_port={}, next_state={}", 
             self.addr, handshake.protocol_version, handshake.server_address, 
             handshake.server_port, handshake.next_state);
         
