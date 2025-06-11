@@ -4,11 +4,13 @@
 //! handshaking, status, and play state management.
 
 pub mod handshake;
+pub mod login;
 pub mod packet;
 pub mod status;
 pub mod varint;
 
 pub use handshake::HandshakePacket;
+pub use login::{LoginStart, LoginSuccess};
 pub use packet::Packet;
 pub use status::{PingRequest, PongResponse, StatusRequest, StatusResponse};
 

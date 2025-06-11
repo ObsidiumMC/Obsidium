@@ -3,8 +3,8 @@
 //! Manages individual client connections and protocol state machines.
 
 use crate::protocol::{
-    ConnectionState, HandshakePacket, Packet, PingRequest, PongResponse, StatusRequest,
-    StatusResponse, packet::parse_packet_data,
+    ConnectionState, HandshakePacket, LoginStart, LoginSuccess, Packet, PingRequest, PongResponse, 
+    StatusRequest, StatusResponse, packet::parse_packet_data,
 };
 use std::io::Cursor;
 use tokio::{io::AsyncReadExt, net::TcpStream};
@@ -152,6 +152,18 @@ impl ClientConnection {
                     );
                 }
             },
+            ConnectionState::Login => match packet_id {
+                id if id == LoginStart::packet_id() => {
+                    self.handle_login_start(&data).await?;
+                }
+                _ => {
+                    tracing::warn!(
+                        "Unexpected packet {} in login state from {}",
+                        packet_id,
+                        self.addr
+                    );
+                }
+            },
             _ => {
                 tracing::warn!(
                     "Unhandled state {:?} for packet {} from {}",
@@ -228,6 +240,35 @@ impl ClientConnection {
 
         let pong = PongResponse::from_ping(&ping);
         self.send_packet(&pong).await?;
+
+        Ok(())
+    }
+
+    /// Handle login start packet
+    async fn handle_login_start(
+        &mut self,
+        data: &[u8],
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let login_start = LoginStart::from_packet_data(data)?;
+
+        tracing::debug!(
+            "Login start from {}: username={}, uuid={}",
+            self.addr,
+            login_start.name,
+            login_start.player_uuid
+        );
+
+        // Create login success response
+        let login_success = LoginSuccess::new(login_start.player_uuid, login_start.name);
+        self.send_packet(&login_success).await?;
+
+        // Transition to Play state (for now, should be Configuration in full implementation)
+        self.state = ConnectionState::Play;
+        tracing::debug!(
+            "Client {} transitioned to state {:?}",
+            self.addr,
+            self.state
+        );
 
         Ok(())
     }
