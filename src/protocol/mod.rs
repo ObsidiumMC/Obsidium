@@ -33,4 +33,4 @@ pub enum ConnectionState {
 pub const PROTOCOL_VERSION: i32 = 770; // Minecraft 1.21.5
 pub const SERVER_VERSION: &str = "1.21.5";
 pub const SERVER_DESCRIPTION: &str =
-    "A high-performance Minecraft server implementation written in Rust.";
+    "A high-performance Minecraft server written in Rust.";

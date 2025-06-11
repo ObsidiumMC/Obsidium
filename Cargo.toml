@@ -3,7 +3,7 @@ name = "obsidiuim"
 version = "0.1.0"
 edition = "2024"
 repository = "https://github.com/OmarAfet/obsidiuim"
-description = "A high-performance Minecraft server implementation written in Rust."
+description = "A high-performance Minecraft server written in Rust."
 license = "MIT"
 authors = ["Omar Afet"]
 

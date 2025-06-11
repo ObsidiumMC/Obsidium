@@ -1,6 +1,6 @@
 //! Obsidium Minecraft Server
 //!
-//! A high-performance Minecraft server implementation written in Rust.
+//! A high-performance Minecraft server written in Rust.
 
 #![deny(
     clippy::too_many_lines,
