@@ -1,8 +1,8 @@
 //! VarInt implementation for Minecraft protocol
-//! 
+//!
 //! VarInt is a variable-length integer encoding used extensively in the Minecraft protocol.
 
-use std::io::{Read, Write, Result as IoResult};
+use std::io::{Read, Result as IoResult, Write};
 
 /// A variable-length integer as used in the Minecraft protocol
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -11,10 +11,10 @@ pub struct VarInt(pub i32);
 impl VarInt {
     /// Maximum number of bytes a VarInt can use
     pub const MAX_SIZE: usize = 5;
-    
+
     /// Segment bits mask (7 bits)
     const SEGMENT_BITS: u8 = 0x7F;
-    
+
     /// Continue bit (most significant bit)
     const CONTINUE_BIT: u8 = 0x80;
 
@@ -22,90 +22,90 @@ impl VarInt {
     pub fn read<R: Read>(reader: &mut R) -> IoResult<VarInt> {
         let mut value = 0i32;
         let mut position = 0u32;
-        
+
         loop {
             let mut byte = [0u8; 1];
             reader.read_exact(&mut byte)?;
             let current_byte = byte[0];
-            
+
             value |= ((current_byte & Self::SEGMENT_BITS) as i32) << position;
-            
+
             if (current_byte & Self::CONTINUE_BIT) == 0 {
                 break;
             }
-            
+
             position += 7;
-            
+
             if position >= 32 {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    "VarInt is too big"
+                    "VarInt is too big",
                 ));
             }
         }
-        
+
         Ok(VarInt(value))
     }
-    
+
     /// Write a VarInt to a writer
     pub fn write<W: Write>(&self, writer: &mut W) -> IoResult<()> {
         let mut value = self.0 as u32;
-        
+
         loop {
             if (value & !Self::SEGMENT_BITS as u32) == 0 {
                 writer.write_all(&[value as u8])?;
                 return Ok(());
             }
-            
+
             writer.write_all(&[(value & Self::SEGMENT_BITS as u32) as u8 | Self::CONTINUE_BIT])?;
             value >>= 7;
         }
     }
-    
+
     /// Get the number of bytes this VarInt would use when encoded
     pub fn size(&self) -> usize {
         let mut value = self.0 as u32;
         let mut size = 1;
-        
+
         while (value & !Self::SEGMENT_BITS as u32) != 0 {
             size += 1;
             value >>= 7;
         }
-        
+
         size
     }
-    
+
     /// Read a VarInt from a byte slice
     pub fn from_bytes(bytes: &[u8]) -> Result<(VarInt, usize), std::io::Error> {
         let mut value = 0i32;
         let mut position = 0u32;
         let mut bytes_read = 0;
-        
+
         for &byte in bytes {
             bytes_read += 1;
-            
+
             value |= ((byte & Self::SEGMENT_BITS) as i32) << position;
-            
+
             if (byte & Self::CONTINUE_BIT) == 0 {
                 return Ok((VarInt(value), bytes_read));
             }
-            
+
             position += 7;
-            
+
             if position >= 32 {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    "VarInt is too big"
+                    "VarInt is too big",
                 ));
             }
         }
-        
+
         Err(std::io::Error::new(
             std::io::ErrorKind::UnexpectedEof,
-            "Incomplete VarInt"
+            "Incomplete VarInt",
         ))
     }
-    
+
     /// Convert to bytes vector
     pub fn to_bytes(self) -> Vec<u8> {
         let mut bytes = Vec::new();
@@ -135,7 +135,6 @@ impl From<usize> for VarInt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Cursor;
 
     #[test]
     fn test_varint_encoding() {
@@ -152,7 +151,7 @@ mod tests {
             let varint = VarInt(value);
             let encoded = varint.to_bytes();
             assert_eq!(encoded, expected, "Failed to encode {value}");
-            
+
             let (decoded, size) = VarInt::from_bytes(&encoded).unwrap();
             assert_eq!(decoded.0, value, "Failed to decode {value}");
             assert_eq!(size, encoded.len(), "Size mismatch for {value}");

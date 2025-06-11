@@ -1,5 +1,5 @@
 //! Obsidium Minecraft Server
-//! 
+//!
 //! A high-performance Minecraft server implementation written in Rust.
 
 #![deny(
@@ -7,16 +7,18 @@
     missing_docs,
     clippy::uninlined_format_args,
     clippy::panic,
+    unused_variables,
+    unused_imports,
+    unused_must_use
 )]
-#![allow(dead_code, unused_variables, unused_imports, unused_must_use)]
 
+mod client;
 mod error;
 mod logger;
 mod protocol;
-mod client;
 
-use error::ServerError;
 use client::ClientConnection;
+use error::ServerError;
 use tokio::net::TcpListener;
 
 #[tokio::main]
@@ -38,7 +40,7 @@ async fn main() -> Result<(), ServerError> {
         match listener.accept().await {
             Ok((socket, addr)) => {
                 tracing::debug!("New connection from {}", addr);
-                
+
                 // Spawn a new task to handle this client
                 tokio::spawn(async move {
                     let client = ClientConnection::new(socket, addr);

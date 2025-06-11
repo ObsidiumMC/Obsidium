@@ -1,12 +1,12 @@
 //! Custom logging implementation for obsidiuim
-//! 
+//!
 //! This module provides a beautifully formatted logger with colored output,
 //! custom time formatting, and structured logging capabilities.
 
 use std::fmt;
+use tracing_subscriber::fmt::FmtContext;
 use tracing_subscriber::fmt::format::Writer;
 use tracing_subscriber::fmt::time::FormatTime;
-use tracing_subscriber::fmt::FmtContext;
 use tracing_subscriber::registry::LookupSpan;
 
 /// ANSI color codes for terminal output
@@ -69,12 +69,7 @@ where
         let timestamp = format_current_time();
 
         // Write gray timestamp
-        write!(
-            writer,
-            "{}{timestamp}{} ",
-            colors::GRAY,
-            colors::RESET
-        )?;
+        write!(writer, "{}{timestamp}{} ", colors::GRAY, colors::RESET)?;
 
         // Write colored log level with consistent spacing
         let level_formatted = format_level(event.metadata().level());
@@ -87,13 +82,13 @@ where
 }
 
 /// Initialize the logging system with custom formatting
-/// 
+///
 /// This function sets up a beautiful, colored logger with custom time formatting
 /// and consistent level alignment. It respects the `RUST_LOG` environment variable
 /// for filtering, falling back to "info" level.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// // Initialize the logger
 /// obsidiuim::logger::init();

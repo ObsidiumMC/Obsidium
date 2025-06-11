@@ -1,17 +1,16 @@
 //! Minecraft protocol implementation
-//! 
+//!
 //! This module handles the Minecraft network protocol including packet parsing,
 //! handshaking, status, and play state management.
 
-pub mod varint;
-pub mod packet;
 pub mod handshake;
+pub mod packet;
 pub mod status;
+pub mod varint;
 
-pub use varint::VarInt;
-pub use packet::{Packet, PacketReader, PacketWriter};
 pub use handshake::HandshakePacket;
-pub use status::{StatusRequest, StatusResponse, PingRequest, PongResponse};
+pub use packet::Packet;
+pub use status::{PingRequest, PongResponse, StatusRequest, StatusResponse};
 
 /// Connection states in the Minecraft protocol
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -29,4 +28,5 @@ pub enum ConnectionState {
 /// Protocol version constants
 pub const PROTOCOL_VERSION: i32 = 770; // Minecraft 1.21.5
 pub const SERVER_VERSION: &str = "1.21.5";
-pub const SERVER_DESCRIPTION: &str = "A high-performance Minecraft server implementation written in Rust.";
+pub const SERVER_DESCRIPTION: &str =
+    "A high-performance Minecraft server implementation written in Rust.";
