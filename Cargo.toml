@@ -1,9 +1,11 @@
 [package]
 name = "obsidiuim"
 version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+edition = "2024"
+repository = "https://github.com/OmarAfet/obsidiuim"
+description = "A high-performance Minecraft server implementation written in Rust."
+license = "MIT"
+authors = ["Omar Afet"]
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }

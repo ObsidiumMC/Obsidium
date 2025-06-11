@@ -1,3 +1,21 @@
+//! Obsidium Minecraft Server
+//! 
+//! A high-performance Minecraft server implementation written in Rust.
+
+#![deny(
+    dead_code,
+    unused_variables,
+    unused_imports,
+    unused_must_use,
+    clippy::too_many_lines,
+    missing_docs,
+    clippy::uninlined_format_args,
+    clippy::panic,
+    clippy::as_conversions,
+    clippy::unwrap_used,
+    clippy::expect_used,
+)]
+
 mod error;
 mod logger;
 
@@ -14,7 +32,7 @@ async fn main() -> Result<(), ServerError> {
         Ok(l) => l,
         Err(e) => {
             tracing::error!("Failed to bind to address: {}", e);
-            panic!("Failed to bind: {}", e);
+            return Err(ServerError::Io(e));
         }
     };
     tracing::info!("Server is listening on 0.0.0.0:25565");
