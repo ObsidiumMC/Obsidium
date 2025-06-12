@@ -12,14 +12,12 @@
     unused_must_use
 )]
 
-mod client;
 mod error;
 mod logger;
-mod protocol;
 
-use client::ClientConnection;
 use error::ServerError;
 use tokio::net::TcpListener;
+use tokio::io::AsyncReadExt;
 
 #[tokio::main]
 async fn main() -> Result<(), ServerError> {
@@ -38,14 +36,21 @@ async fn main() -> Result<(), ServerError> {
 
     loop {
         match listener.accept().await {
-            Ok((socket, addr)) => {
+            Ok((mut socket, addr)) => {
                 tracing::debug!("New connection from {}", addr);
 
-                // Spawn a new task to handle this client
                 tokio::spawn(async move {
-                    let client = ClientConnection::new(socket, addr);
-                    if let Err(e) = client.handle().await {
-                        tracing::error!("Error handling client {}: {:?}", addr, e);
+                    let mut buffer = [0; 1024];
+                    match socket.read(&mut buffer).await {
+                        Ok(0) => {
+                            tracing::debug!("Connection closed by peer");
+                        }
+                        Ok(n) => {
+                            tracing::debug!("From ({addr}) received: {:?}", &buffer[..n]);
+                        }
+                        Err(e) => {
+                            tracing::error!("Failed to read from socket: {}", e);
+                        }
                     }
                 });
             }
