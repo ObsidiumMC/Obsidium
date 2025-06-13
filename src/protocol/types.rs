@@ -4,6 +4,7 @@
 //! including VarInt, VarLong, String, and other composite types.
 
 use crate::error::{Result, ServerError};
+use serde_json::Value as JsonValue;
 use std::io::{Read, Write};
 use uuid::Uuid;
 
@@ -194,6 +195,31 @@ impl McString {
         Ok(McString(string))
     }
 
+    /// Read a string with a specific maximum length
+    pub fn read_with_max_length<R: Read>(reader: &mut R, max_length: usize) -> Result<Self> {
+        let length = VarInt::read(reader)?;
+
+        if length.0 < 0 {
+            return Err(ServerError::Protocol("Negative string length".to_string()));
+        }
+
+        let length = length.0 as usize;
+        if length > max_length {
+            return Err(ServerError::Protocol(format!(
+                "String too long: {} > {}",
+                length, max_length
+            )));
+        }
+
+        let mut bytes = vec![0u8; length];
+        reader.read_exact(&mut bytes)?;
+
+        let string = String::from_utf8(bytes)
+            .map_err(|_| ServerError::Protocol("Invalid UTF-8 in string".to_string()))?;
+
+        Ok(McString(string))
+    }
+
     /// Write a string to a writer
     pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         let bytes = self.0.as_bytes();
@@ -205,6 +231,18 @@ impl McString {
         VarInt(bytes.len() as i32).write(writer)?;
         writer.write_all(bytes)?;
 
+        Ok(())
+    }
+
+    /// Validate string length against a maximum
+    pub fn validate_length(&self, max_length: usize) -> Result<()> {
+        if self.0.len() > max_length {
+            return Err(ServerError::Protocol(format!(
+                "String too long: {} > {}",
+                self.0.len(),
+                max_length
+            )));
+        }
         Ok(())
     }
 }
@@ -297,6 +335,348 @@ pub fn write_bool<W: Write>(value: bool, writer: &mut W) -> Result<()> {
     Ok(())
 }
 
+/// Read an unsigned short (u16) from a reader
+pub fn read_unsigned_short<R: Read>(reader: &mut R) -> Result<u16> {
+    let mut bytes = [0u8; 2];
+    reader.read_exact(&mut bytes)?;
+    Ok(u16::from_be_bytes(bytes))
+}
+
+/// Write an unsigned short (u16) to a writer
+pub fn write_unsigned_short<W: Write>(value: u16, writer: &mut W) -> Result<()> {
+    writer.write_all(&value.to_be_bytes())?;
+    Ok(())
+}
+
+/// Read an unsigned byte (u8) from a reader
+pub fn read_unsigned_byte<R: Read>(reader: &mut R) -> Result<u8> {
+    let mut byte = [0u8; 1];
+    reader.read_exact(&mut byte)?;
+    Ok(byte[0])
+}
+
+/// Write an unsigned byte (u8) to a writer
+pub fn write_unsigned_byte<W: Write>(value: u8, writer: &mut W) -> Result<()> {
+    writer.write_all(&[value])?;
+    Ok(())
+}
+
+/// Read a long (i64) from a reader
+pub fn read_long<R: Read>(reader: &mut R) -> Result<i64> {
+    let mut bytes = [0u8; 8];
+    reader.read_exact(&mut bytes)?;
+    Ok(i64::from_be_bytes(bytes))
+}
+
+/// Write a long (i64) to a writer
+pub fn write_long<W: Write>(value: i64, writer: &mut W) -> Result<()> {
+    writer.write_all(&value.to_be_bytes())?;
+    Ok(())
+}
+
+/// Read an int (i32) from a reader
+pub fn read_int<R: Read>(reader: &mut R) -> Result<i32> {
+    let mut bytes = [0u8; 4];
+    reader.read_exact(&mut bytes)?;
+    Ok(i32::from_be_bytes(bytes))
+}
+
+/// Write an int (i32) to a writer
+pub fn write_int<W: Write>(value: i32, writer: &mut W) -> Result<()> {
+    writer.write_all(&value.to_be_bytes())?;
+    Ok(())
+}
+
+/// A byte array with VarInt length prefix
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ByteArray(pub Vec<u8>);
+
+impl ByteArray {
+    /// Read a byte array from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let length = VarInt::read(reader)?;
+
+        if length.0 < 0 {
+            return Err(ServerError::Protocol(
+                "Negative byte array length".to_string(),
+            ));
+        }
+
+        let mut bytes = vec![0u8; length.0 as usize];
+        reader.read_exact(&mut bytes)?;
+        Ok(ByteArray(bytes))
+    }
+
+    /// Write a byte array to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        VarInt(self.0.len() as i32).write(writer)?;
+        writer.write_all(&self.0)?;
+        Ok(())
+    }
+
+    /// Read a byte array with a maximum length
+    pub fn read_with_max_length<R: Read>(reader: &mut R, max_length: usize) -> Result<Self> {
+        let length = VarInt::read(reader)?;
+
+        if length.0 < 0 {
+            return Err(ServerError::Protocol(
+                "Negative byte array length".to_string(),
+            ));
+        }
+
+        if length.0 as usize > max_length {
+            return Err(ServerError::Protocol(format!(
+                "Byte array too long: {} > {}",
+                length.0, max_length
+            )));
+        }
+
+        let mut bytes = vec![0u8; length.0 as usize];
+        reader.read_exact(&mut bytes)?;
+        Ok(ByteArray(bytes))
+    }
+}
+
+impl From<Vec<u8>> for ByteArray {
+    fn from(bytes: Vec<u8>) -> Self {
+        ByteArray(bytes)
+    }
+}
+
+impl From<ByteArray> for Vec<u8> {
+    fn from(array: ByteArray) -> Self {
+        array.0
+    }
+}
+
+/// A JSON text component
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JsonTextComponent(pub String);
+
+impl JsonTextComponent {
+    /// Read a JSON text component from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let json_string = McString::read(reader)?;
+
+        // Validate that it's valid JSON
+        serde_json::from_str::<JsonValue>(&json_string.0)
+            .map_err(|_| ServerError::Protocol("Invalid JSON text component".to_string()))?;
+
+        Ok(JsonTextComponent(json_string.0))
+    }
+
+    /// Write a JSON text component to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let mc_string = McString(self.0.clone());
+        mc_string.write(writer)
+    }
+
+    /// Create a simple text component
+    pub fn text(text: &str) -> Self {
+        let json = serde_json::json!({
+            "text": text
+        });
+        JsonTextComponent(json.to_string())
+    }
+}
+
+impl From<String> for JsonTextComponent {
+    fn from(text: String) -> Self {
+        JsonTextComponent::text(&text)
+    }
+}
+
+impl From<&str> for JsonTextComponent {
+    fn from(text: &str) -> Self {
+        JsonTextComponent::text(text)
+    }
+}
+
+/// An identifier (namespaced string)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Identifier(pub String);
+
+impl Identifier {
+    /// Read an identifier from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let string = McString::read(reader)?;
+        Ok(Identifier(string.0))
+    }
+
+    /// Write an identifier to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let mc_string = McString(self.0.clone());
+        mc_string.write(writer)
+    }
+
+    /// Create a new identifier with namespace and path
+    pub fn new(namespace: &str, path: &str) -> Self {
+        Identifier(format!("{}:{}", namespace, path))
+    }
+
+    /// Get the namespace part
+    pub fn namespace(&self) -> &str {
+        self.0.split(':').next().unwrap_or("")
+    }
+
+    /// Get the path part
+    pub fn path(&self) -> &str {
+        self.0.split(':').nth(1).unwrap_or(&self.0)
+    }
+}
+
+impl From<String> for Identifier {
+    fn from(value: String) -> Self {
+        Identifier(value)
+    }
+}
+
+impl From<&str> for Identifier {
+    fn from(value: &str) -> Self {
+        Identifier(value.to_string())
+    }
+}
+
+/// An optional value that may or may not be present
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Optional<T> {
+    /// The optional value
+    pub value: Option<T>,
+}
+
+impl<T> Optional<T> {
+    /// Create a new optional value
+    pub fn some(value: T) -> Self {
+        Optional { value: Some(value) }
+    }
+
+    /// Create an empty optional value
+    pub fn none() -> Self {
+        Optional { value: None }
+    }
+
+    /// Check if the optional has a value
+    pub fn is_present(&self) -> bool {
+        self.value.is_some()
+    }
+}
+
+impl<T> From<Option<T>> for Optional<T> {
+    fn from(option: Option<T>) -> Self {
+        Optional { value: option }
+    }
+}
+
+impl<T> From<Optional<T>> for Option<T> {
+    fn from(optional: Optional<T>) -> Self {
+        optional.value
+    }
+}
+
+/// Specialized string types with length limits as defined in the protocol
+
+/// Server address string (max 255 characters)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ServerAddress(pub String);
+
+impl ServerAddress {
+    /// Maximum length for server address strings
+    pub const MAX_LENGTH: usize = 255;
+
+    /// Read a server address from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let string = McString::read_with_max_length(reader, Self::MAX_LENGTH)?;
+        Ok(ServerAddress(string.0))
+    }
+
+    /// Write a server address to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let mc_string = McString(self.0.clone());
+        mc_string.validate_length(Self::MAX_LENGTH)?;
+        mc_string.write(writer)
+    }
+}
+
+impl From<String> for ServerAddress {
+    fn from(value: String) -> Self {
+        ServerAddress(value)
+    }
+}
+
+impl From<&str> for ServerAddress {
+    fn from(value: &str) -> Self {
+        ServerAddress(value.to_string())
+    }
+}
+
+/// Username string (max 16 characters)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Username(pub String);
+
+impl Username {
+    /// Maximum length for username strings
+    pub const MAX_LENGTH: usize = 16;
+
+    /// Read a username from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let string = McString::read_with_max_length(reader, Self::MAX_LENGTH)?;
+        Ok(Username(string.0))
+    }
+
+    /// Write a username to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let mc_string = McString(self.0.clone());
+        mc_string.validate_length(Self::MAX_LENGTH)?;
+        mc_string.write(writer)
+    }
+}
+
+impl From<String> for Username {
+    fn from(value: String) -> Self {
+        Username(value)
+    }
+}
+
+impl From<&str> for Username {
+    fn from(value: &str) -> Self {
+        Username(value.to_string())
+    }
+}
+
+/// Server ID string (max 20 characters)
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ServerId(pub String);
+
+impl ServerId {
+    /// Maximum length for server ID strings
+    pub const MAX_LENGTH: usize = 20;
+
+    /// Read a server ID from a reader
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let string = McString::read_with_max_length(reader, Self::MAX_LENGTH)?;
+        Ok(ServerId(string.0))
+    }
+
+    /// Write a server ID to a writer
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        let mc_string = McString(self.0.clone());
+        mc_string.validate_length(Self::MAX_LENGTH)?;
+        mc_string.write(writer)
+    }
+}
+
+impl From<String> for ServerId {
+    fn from(value: String) -> Self {
+        ServerId(value)
+    }
+}
+
+impl From<&str> for ServerId {
+    fn from(value: &str) -> Self {
+        ServerId(value.to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -332,5 +712,75 @@ mod tests {
 
             assert_eq!(mc_string, decoded);
         }
+    }
+
+    #[test]
+    fn test_byte_array_roundtrip() {
+        let test_data = vec![1, 2, 3, 4, 5, 255, 0];
+        let byte_array = ByteArray::from(test_data.clone());
+
+        let mut buffer = Vec::new();
+        byte_array.write(&mut buffer).unwrap();
+
+        let mut cursor = Cursor::new(buffer);
+        let decoded = ByteArray::read(&mut cursor).unwrap();
+
+        assert_eq!(byte_array, decoded);
+        assert_eq!(test_data, decoded.0);
+    }
+
+    #[test]
+    fn test_json_text_component() {
+        let component = JsonTextComponent::text("Hello, world!");
+
+        let mut buffer = Vec::new();
+        component.write(&mut buffer).unwrap();
+
+        let mut cursor = Cursor::new(buffer);
+        let decoded = JsonTextComponent::read(&mut cursor).unwrap();
+
+        assert_eq!(component, decoded);
+    }
+
+    #[test]
+    fn test_identifier() {
+        let identifier = Identifier::new("minecraft", "stone");
+
+        let mut buffer = Vec::new();
+        identifier.write(&mut buffer).unwrap();
+
+        let mut cursor = Cursor::new(buffer);
+        let decoded = Identifier::read(&mut cursor).unwrap();
+
+        assert_eq!(identifier, decoded);
+        assert_eq!("minecraft", identifier.namespace());
+        assert_eq!("stone", identifier.path());
+    }
+
+    #[test]
+    fn test_primitive_types() {
+        // Test unsigned short
+        let value = 12345u16;
+        let mut buffer = Vec::new();
+        write_unsigned_short(value, &mut buffer).unwrap();
+        let mut cursor = Cursor::new(buffer);
+        let decoded = read_unsigned_short(&mut cursor).unwrap();
+        assert_eq!(value, decoded);
+
+        // Test long
+        let value = 1234567890123456789i64;
+        let mut buffer = Vec::new();
+        write_long(value, &mut buffer).unwrap();
+        let mut cursor = Cursor::new(buffer);
+        let decoded = read_long(&mut cursor).unwrap();
+        assert_eq!(value, decoded);
+
+        // Test int
+        let value = -123456789i32;
+        let mut buffer = Vec::new();
+        write_int(value, &mut buffer).unwrap();
+        let mut cursor = Cursor::new(buffer);
+        let decoded = read_int(&mut cursor).unwrap();
+        assert_eq!(value, decoded);
     }
 }

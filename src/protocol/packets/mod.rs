@@ -3,6 +3,7 @@
 //! This module contains all packet definitions organized by protocol state.
 //! Each state has its own submodule with clientbound and serverbound packets.
 
+pub mod configuration;
 pub mod handshaking;
 pub mod login;
 pub mod play;
@@ -32,7 +33,7 @@ pub trait Packet: Sized {
 /// Trait for clientbound packets (server -> client)
 pub trait ClientboundPacket: Packet {}
 
-/// Trait for serverbound packets (client -> server)  
+/// Trait for serverbound packets (client -> server)
 pub trait ServerboundPacket: Packet {}
 
 /// Helper function to read packet length

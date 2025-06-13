@@ -38,6 +38,15 @@ impl Compression {
 
         let uncompressed_length = uncompressed_data.len();
 
+        // Validate uncompressed length against protocol limits
+        if uncompressed_length > crate::protocol::MAX_UNCOMPRESSED_PACKET_SIZE {
+            return Err(ServerError::Protocol(format!(
+                "Uncompressed packet too large: {} > {}",
+                uncompressed_length,
+                crate::protocol::MAX_UNCOMPRESSED_PACKET_SIZE
+            )));
+        }
+
         // If below threshold, send uncompressed
         if uncompressed_length < self.threshold as usize {
             let mut result = Vec::new();
@@ -109,6 +118,15 @@ impl Compression {
         // Compressed data
         result.extend_from_slice(&compressed_data);
 
+        // Validate final packet size
+        if result.len() > crate::protocol::MAX_PACKET_SIZE {
+            return Err(ServerError::Protocol(format!(
+                "Compressed packet too large: {} > {}",
+                result.len(),
+                crate::protocol::MAX_PACKET_SIZE
+            )));
+        }
+
         Ok(result)
     }
 
@@ -119,10 +137,23 @@ impl Compression {
         // Read data length
         let data_length = VarInt::read(&mut cursor)?;
 
+        if data_length.0 < 0 {
+            return Err(ServerError::Protocol(
+                "Negative data length in compressed packet".to_string(),
+            ));
+        }
+
         let compressed_data = &data[cursor.position() as usize..];
 
         // If data length is 0, packet is uncompressed
         if data_length.0 == 0 {
+            // Vanilla server rejects compressed packets smaller than threshold
+            if compressed_data.len() >= self.threshold as usize {
+                return Err(ServerError::Protocol(
+                    "Uncompressed packet marked as compressed exceeds threshold".to_string(),
+                ));
+            }
+
             let mut uncompressed_cursor = std::io::Cursor::new(compressed_data);
             let packet_id = VarInt::read(&mut uncompressed_cursor)?;
             let remaining_data =
@@ -132,6 +163,24 @@ impl Compression {
 
         // Decompress the data
         let uncompressed_length = data_length.0 as usize;
+
+        // Validate uncompressed length
+        if uncompressed_length > crate::protocol::MAX_UNCOMPRESSED_PACKET_SIZE {
+            return Err(ServerError::Protocol(format!(
+                "Uncompressed length too large: {} > {}",
+                uncompressed_length,
+                crate::protocol::MAX_UNCOMPRESSED_PACKET_SIZE
+            )));
+        }
+
+        // Check that compressed packet should be compressed (>= threshold)
+        if uncompressed_length < self.threshold as usize {
+            return Err(ServerError::Protocol(format!(
+                "Compressed packet below threshold: {} < {}",
+                uncompressed_length, self.threshold
+            )));
+        }
+
         let mut uncompressed_data = vec![0u8; uncompressed_length];
 
         self.decompressor.reset(false);

@@ -33,3 +33,9 @@ pub const PROTOCOL_VERSION: i32 = 770;
 
 /// Maximum packet size (2^21 - 1 bytes)
 pub const MAX_PACKET_SIZE: usize = 2_097_151;
+
+/// Maximum uncompressed packet size for serverbound packets (2^23 bytes)
+pub const MAX_UNCOMPRESSED_PACKET_SIZE: usize = 8_388_608;
+
+/// Maximum VarInt length field size (3 bytes)
+pub const MAX_VARINT_LENGTH_FIELD_SIZE: usize = 3;

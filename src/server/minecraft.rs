@@ -10,7 +10,8 @@ use crate::network::{Connection, ServerListener};
 use crate::protocol::packets::{
     Packet,
     handshaking::HandshakePacket,
-    login::{LoginStartPacket, LoginSuccessPacket, SetCompressionPacket},
+    login::{LoginAcknowledgedPacket, LoginStartPacket, LoginSuccessPacket, SetCompressionPacket},
+    play::LoginPlayPacket,
     status::{
         Description, PingRequestPacket, PingResponsePacket, PlayersInfo, ServerStatus,
         StatusRequestPacket, StatusResponsePacket, VersionInfo,
@@ -156,6 +157,14 @@ impl MinecraftServer {
                         match handshake.next_state.0 {
                             1 => connection.set_state(ConnectionState::Status),
                             2 => connection.set_state(ConnectionState::Login),
+                            3 => {
+                                // Transfer intent - for now, treat as login
+                                // TODO: Implement proper transfer handling
+                                connection.set_state(ConnectionState::Login);
+                                tracing::debug!(
+                                    "Transfer intent received, treating as login for now"
+                                );
+                            }
                             _ => {
                                 return Err(ServerError::Protocol(
                                     "Invalid next state".to_string(),
@@ -220,9 +229,45 @@ impl MinecraftServer {
 
                         players.add_player(player, connection.peer_addr()).await;
 
+                        connection.set_state(ConnectionState::Configuration);
+
+                        tracing::info!(
+                            "Player logged in successfully, transitioning to configuration state"
+                        );
+                    }
+                }
+
+                ConnectionState::Configuration => {
+                    if packet_id.0 == LoginAcknowledgedPacket::ID {
+                        let _login_ack =
+                            LoginAcknowledgedPacket::read(&mut std::io::Cursor::new(&data))?;
+
+                        tracing::debug!("Login acknowledged received in configuration state");
+
+                        // Send finish configuration packet
+                        use crate::protocol::packets::configuration::FinishConfigurationPacket;
+                        let finish_config = FinishConfigurationPacket;
+                        connection.write_packet(&finish_config).await?;
+
+                        tracing::debug!("Finish configuration packet sent");
+                    } else if packet_id.0 == 0x02 {
+                        // Acknowledge Finish Configuration packet
+                        use crate::protocol::packets::configuration::AcknowledgeFinishConfigurationPacket;
+                        let _ack_finish = AcknowledgeFinishConfigurationPacket::read(
+                            &mut std::io::Cursor::new(&data),
+                        )?;
+
+                        tracing::debug!(
+                            "Acknowledge finish configuration received, transitioning to play state"
+                        );
+
                         connection.set_state(ConnectionState::Play);
 
-                        tracing::info!("Player logged in successfully");
+                        // Send login play packet after transitioning to play state
+                        let login_play = LoginPlayPacket::from_server_config(&config, 1);
+                        connection.write_packet(&login_play).await?;
+
+                        tracing::info!("Login play packet sent, player is now in play state");
                     }
                 }
 

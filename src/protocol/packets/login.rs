@@ -111,6 +111,24 @@ impl Packet for SetCompressionPacket {
 
 impl ClientboundPacket for SetCompressionPacket {}
 
+/// Login acknowledged packet (serverbound)
+#[derive(Debug, Clone)]
+pub struct LoginAcknowledgedPacket;
+
+impl Packet for LoginAcknowledgedPacket {
+    const ID: i32 = 0x03;
+
+    fn read<R: Read>(_reader: &mut R) -> Result<Self> {
+        Ok(LoginAcknowledgedPacket)
+    }
+
+    fn write<W: Write>(&self, _writer: &mut W) -> Result<()> {
+        Ok(())
+    }
+}
+
+impl ServerboundPacket for LoginAcknowledgedPacket {}
+
 /// Player property (used in login success)
 #[derive(Debug, Clone)]
 pub struct Property {

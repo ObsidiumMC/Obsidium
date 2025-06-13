@@ -13,6 +13,8 @@ pub enum ConnectionState {
     Status,
     /// Login/authentication state
     Login,
+    /// Configuration state
+    Configuration,
     /// Active gameplay state
     Play,
 }
@@ -20,7 +22,10 @@ pub enum ConnectionState {
 impl ConnectionState {
     /// Check if packets can be compressed in this state
     pub fn allows_compression(&self) -> bool {
-        matches!(self, ConnectionState::Login | ConnectionState::Play)
+        matches!(
+            self,
+            ConnectionState::Login | ConnectionState::Configuration | ConnectionState::Play
+        )
     }
 
     /// Get the string representation of the state
@@ -29,6 +34,7 @@ impl ConnectionState {
             ConnectionState::Handshaking => "handshaking",
             ConnectionState::Status => "status",
             ConnectionState::Login => "login",
+            ConnectionState::Configuration => "configuration",
             ConnectionState::Play => "play",
         }
     }

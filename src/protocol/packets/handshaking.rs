@@ -60,6 +60,8 @@ pub enum NextState {
     Status = 1,
     /// Login process
     Login = 2,
+    /// Transfer process
+    Transfer = 3,
 }
 
 impl TryFrom<VarInt> for NextState {
@@ -69,6 +71,7 @@ impl TryFrom<VarInt> for NextState {
         match value.0 {
             1 => Ok(NextState::Status),
             2 => Ok(NextState::Login),
+            3 => Ok(NextState::Transfer),
             _ => Err(crate::error::ServerError::Protocol(format!(
                 "Invalid next state: {}",
                 value.0
@@ -80,5 +83,39 @@ impl TryFrom<VarInt> for NextState {
 impl From<NextState> for VarInt {
     fn from(state: NextState) -> Self {
         VarInt(state as i32)
+    }
+}
+
+/// Legacy Server List Ping packet (serverbound)
+///
+/// This packet uses a nonstandard format. It is never length-prefixed,
+/// and the packet ID is an Unsigned Byte instead of a VarInt.
+/// This packet is sent by legacy clients to initiate Server List Ping.
+#[derive(Debug, Clone)]
+pub struct LegacyServerListPingPacket {
+    /// Always 1 (0x01)
+    pub payload: u8,
+}
+
+impl Packet for LegacyServerListPingPacket {
+    const ID: i32 = 0xFE; // Legacy packet ID
+
+    fn read<R: Read>(reader: &mut R) -> Result<Self> {
+        let payload = crate::protocol::types::read_unsigned_byte(reader)?;
+        Ok(LegacyServerListPingPacket { payload })
+    }
+
+    fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
+        crate::protocol::types::write_unsigned_byte(self.payload, writer)?;
+        Ok(())
+    }
+}
+
+impl ServerboundPacket for LegacyServerListPingPacket {}
+
+impl LegacyServerListPingPacket {
+    /// Create a new legacy server list ping packet
+    pub fn new() -> Self {
+        Self { payload: 1 }
     }
 }
