@@ -1,6 +1,12 @@
+<div align="center">
+
 # Obsidium
 
 A high-performance Minecraft server implementation written in Rust.
+
+<a target="_blank" href="https://discord.gg/XyKfC4WjUw"><img src="https://dcbadge.limes.pink/api/server/XyKfC4WjUw" alt="" /></a>
+
+</div>
 
 ## Overview
 
