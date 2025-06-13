@@ -36,44 +36,44 @@ impl BlockRegistry {
             blocks: HashMap::new(),
             name_to_id: HashMap::new(),
         };
-        
+
         // Register default blocks
         registry.register_default_blocks();
         registry
     }
-    
+
     /// Register a new block
     pub fn register_block(&mut self, info: BlockInfo) {
         self.name_to_id.insert(info.name.clone(), info.id);
         self.blocks.insert(info.id, info);
     }
-    
+
     /// Get block info by ID
     pub fn get_block(&self, id: u32) -> Option<&BlockInfo> {
         self.blocks.get(&id)
     }
-    
+
     /// Get block ID by name
     pub fn get_block_id(&self, name: &str) -> Option<u32> {
         self.name_to_id.get(name).copied()
     }
-    
+
     /// Get block info by name
     pub fn get_block_by_name(&self, name: &str) -> Option<&BlockInfo> {
         let id = self.get_block_id(name)?;
         self.get_block(id)
     }
-    
+
     /// Get all registered blocks
     pub fn all_blocks(&self) -> impl Iterator<Item = &BlockInfo> {
         self.blocks.values()
     }
-    
+
     /// Get block count
     pub fn block_count(&self) -> usize {
         self.blocks.len()
     }
-    
+
     /// Register default Minecraft blocks
     fn register_default_blocks(&mut self) {
         let default_blocks = [
@@ -142,7 +142,7 @@ impl BlockRegistry {
                 resistance: 3600000.0,
             },
         ];
-        
+
         for block in default_blocks {
             self.register_block(block);
         }
@@ -185,38 +185,38 @@ impl ItemRegistry {
             items: HashMap::new(),
             name_to_id: HashMap::new(),
         };
-        
+
         // Register default items
         registry.register_default_items();
         registry
     }
-    
+
     /// Register a new item
     pub fn register_item(&mut self, info: ItemInfo) {
         self.name_to_id.insert(info.name.clone(), info.id);
         self.items.insert(info.id, info);
     }
-    
+
     /// Get item info by ID
     pub fn get_item(&self, id: u32) -> Option<&ItemInfo> {
         self.items.get(&id)
     }
-    
+
     /// Get item ID by name
     pub fn get_item_id(&self, name: &str) -> Option<u32> {
         self.name_to_id.get(name).copied()
     }
-    
+
     /// Get all registered items
     pub fn all_items(&self) -> impl Iterator<Item = &ItemInfo> {
         self.items.values()
     }
-    
+
     /// Get item count
     pub fn item_count(&self) -> usize {
         self.items.len()
     }
-    
+
     /// Register default Minecraft items
     fn register_default_items(&mut self) {
         let default_items = [
@@ -242,7 +242,7 @@ impl ItemRegistry {
                 max_durability: None,
             },
         ];
-        
+
         for item in default_items {
             self.register_item(item);
         }

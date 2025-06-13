@@ -16,13 +16,13 @@ use std::io::{Read, Write};
 pub trait Packet: Sized {
     /// The packet ID
     const ID: i32;
-    
+
     /// Read packet data from a reader
     fn read<R: Read>(reader: &mut R) -> Result<Self>;
-    
+
     /// Write packet data to a writer
     fn write<W: Write>(&self, writer: &mut W) -> Result<()>;
-    
+
     /// Get the packet ID as a VarInt
     fn id() -> VarInt {
         VarInt(Self::ID)
@@ -46,12 +46,12 @@ pub fn write_packet_with_length<W: Write, P: Packet>(packet: &P, writer: &mut W)
     let mut packet_data = Vec::new();
     P::id().write(&mut packet_data)?;
     packet.write(&mut packet_data)?;
-    
+
     // Write length prefix
     VarInt(packet_data.len() as i32).write(writer)?;
-    
+
     // Write packet data
     writer.write_all(&packet_data)?;
-    
+
     Ok(())
 }

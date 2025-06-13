@@ -1,4 +1,4 @@
-//! Custom logging implementation for obsidiuim
+//! Custom logging implementation for obsidium
 //!
 //! This module provides a beautifully formatted logger with colored output,
 //! custom time formatting, and structured logging capabilities.
@@ -91,7 +91,7 @@ where
 ///
 /// ```rust
 /// // Initialize the logger
-/// obsidiuim::logger::init();
+/// obsidium::logger::init();
 /// ```
 pub fn init() {
     let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()

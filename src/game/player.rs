@@ -101,35 +101,35 @@ impl Player {
             on_ground: true,
         }
     }
-    
+
     /// Update player position
     pub fn set_position(&mut self, x: f64, y: f64, z: f64) {
         self.position.x = x;
         self.position.y = y;
         self.position.z = z;
     }
-    
+
     /// Update player rotation
     pub fn set_rotation(&mut self, yaw: f32, pitch: f32) {
         self.rotation.yaw = yaw;
         self.rotation.pitch = pitch;
     }
-    
+
     /// Set game mode
     pub fn set_game_mode(&mut self, mode: GameMode) {
         self.game_mode = mode;
     }
-    
+
     /// Set health
     pub fn set_health(&mut self, health: f32) {
         self.health = health.clamp(0.0, 20.0);
     }
-    
+
     /// Set food level
     pub fn set_food(&mut self, food: i32) {
         self.food = food.clamp(0, 20);
     }
-    
+
     /// Check if player is alive
     pub fn is_alive(&self) -> bool {
         self.health > 0.0
@@ -158,77 +158,81 @@ impl PlayerManager {
             connections: Arc::new(RwLock::new(HashMap::new())),
         }
     }
-    
+
     /// Add a new player
     pub async fn add_player(&self, player: Player, connection_addr: SocketAddr) {
         let uuid = player.uuid;
-        
+
         {
             let mut players = self.players.write().await;
             players.insert(uuid, player);
         }
-        
+
         {
             let mut connections = self.connections.write().await;
             connections.insert(connection_addr, uuid);
         }
-        
+
         tracing::info!("Player {} connected from {}", uuid, connection_addr);
     }
-    
+
     /// Remove a player
     pub async fn remove_player(&self, connection_addr: SocketAddr) -> Option<Player> {
         let uuid = {
             let mut connections = self.connections.write().await;
             connections.remove(&connection_addr)
         };
-        
+
         if let Some(uuid) = uuid {
             let mut players = self.players.write().await;
             let player = players.remove(&uuid);
-            
+
             if let Some(ref player) = player {
-                tracing::info!("Player {} disconnected from {}", player.username, connection_addr);
+                tracing::info!(
+                    "Player {} disconnected from {}",
+                    player.username,
+                    connection_addr
+                );
             }
-            
+
             player
         } else {
             None
         }
     }
-    
+
     /// Get a player by UUID
     pub async fn get_player(&self, uuid: &McUuid) -> Option<Player> {
         let players = self.players.read().await;
         players.get(uuid).cloned()
     }
-    
+
     /// Get a player by connection address
     pub async fn get_player_by_addr(&self, addr: &SocketAddr) -> Option<Player> {
         let uuid = {
             let connections = self.connections.read().await;
             connections.get(addr).copied()
         };
-        
+
         if let Some(uuid) = uuid {
             self.get_player(&uuid).await
         } else {
             None
         }
     }
-    
+
     /// Update a player
     pub async fn update_player(&self, uuid: &McUuid, player: Player) {
         let mut players = self.players.write().await;
         players.insert(*uuid, player);
     }
-    
+
     /// Get all connected players
     pub async fn get_all_players(&self) -> Vec<Player> {
         let players = self.players.read().await;
         players.values().cloned().collect()
     }
-    
+
     /// Get player count
     pub async fn player_count(&self) -> usize {
         let players = self.players.read().await;

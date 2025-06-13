@@ -26,7 +26,7 @@ pub mod types;
 
 pub use compression::Compression;
 pub use state::{ConnectionState, ProtocolState};
-pub use types::{VarInt, VarLong, McString, Position, McUuid};
+pub use types::{McString, McUuid, Position, VarInt, VarLong};
 
 /// Protocol version constant
 pub const PROTOCOL_VERSION: i32 = 770;

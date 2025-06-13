@@ -15,22 +15,22 @@ pub type EntityId = i32;
 pub trait Entity: Send + Sync {
     /// Get the entity ID
     fn entity_id(&self) -> EntityId;
-    
+
     /// Get the entity type
     fn entity_type(&self) -> EntityType;
-    
+
     /// Get the entity position
     fn position(&self) -> EntityPosition;
-    
+
     /// Get the entity rotation
     fn rotation(&self) -> EntityRotation;
-    
+
     /// Get the entity UUID (if applicable)
     fn uuid(&self) -> Option<McUuid>;
-    
+
     /// Check if the entity is alive
     fn is_alive(&self) -> bool;
-    
+
     /// Update the entity
     fn update(&mut self, delta_time: f64);
 }
@@ -118,51 +118,51 @@ impl EntityManager {
             next_entity_id: 1, // Start from 1, as 0 might be reserved
         }
     }
-    
+
     /// Generate a new entity ID
     pub fn next_entity_id(&mut self) -> EntityId {
         let id = self.next_entity_id;
         self.next_entity_id += 1;
         id
     }
-    
+
     /// Add an entity
     pub fn add_entity(&mut self, entity: Box<dyn Entity>) -> EntityId {
         let entity_id = entity.entity_id();
         self.entities.insert(entity_id, entity);
         entity_id
     }
-    
+
     /// Remove an entity
     pub fn remove_entity(&mut self, entity_id: EntityId) -> Option<Box<dyn Entity>> {
         self.entities.remove(&entity_id)
     }
-    
+
     /// Get an entity
     pub fn get_entity(&self, entity_id: EntityId) -> Option<&dyn Entity> {
         self.entities.get(&entity_id).map(|e| e.as_ref())
     }
-    
+
     /// Get a mutable reference to an entity
     pub fn get_entity_mut(&mut self, entity_id: EntityId) -> Option<&mut Box<dyn Entity>> {
         self.entities.get_mut(&entity_id)
     }
-    
+
     /// Get all entities
     pub fn entities(&self) -> impl Iterator<Item = &dyn Entity> {
         self.entities.values().map(|e| e.as_ref())
     }
-    
+
     /// Update all entities
     pub fn update_all(&mut self, delta_time: f64) {
         for entity in self.entities.values_mut() {
             entity.update(delta_time);
         }
-        
+
         // Remove dead entities
         self.entities.retain(|_, entity| entity.is_alive());
     }
-    
+
     /// Get entity count
     pub fn entity_count(&self) -> usize {
         self.entities.len()

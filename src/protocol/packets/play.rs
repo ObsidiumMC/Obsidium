@@ -17,14 +17,14 @@ pub struct KeepAlivePacket {
 
 impl Packet for KeepAlivePacket {
     const ID: i32 = 0x26; // Clientbound ID, serverbound is 0x18
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let mut bytes = [0u8; 8];
         reader.read_exact(&mut bytes)?;
         let keep_alive_id = i64::from_be_bytes(bytes);
         Ok(KeepAlivePacket { keep_alive_id })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         writer.write_all(&self.keep_alive_id.to_be_bytes())?;
         Ok(())
@@ -43,12 +43,12 @@ pub struct DisconnectPacket {
 
 impl Packet for DisconnectPacket {
     const ID: i32 = 0x1D;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let reason = McString::read(reader)?;
         Ok(DisconnectPacket { reason })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         self.reason.write(writer)?;
         Ok(())
@@ -76,18 +76,18 @@ pub struct ChatMessagePacket {
 
 impl Packet for ChatMessagePacket {
     const ID: i32 = 0x06;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let message = McString::read(reader)?;
-        
+
         let mut timestamp_bytes = [0u8; 8];
         reader.read_exact(&mut timestamp_bytes)?;
         let timestamp = i64::from_be_bytes(timestamp_bytes);
-        
+
         let mut salt_bytes = [0u8; 8];
         reader.read_exact(&mut salt_bytes)?;
         let salt = i64::from_be_bytes(salt_bytes);
-        
+
         let has_signature = crate::protocol::types::read_bool(reader)?;
         let signature = if has_signature {
             let signature_length = VarInt::read(reader)?;
@@ -97,13 +97,13 @@ impl Packet for ChatMessagePacket {
         } else {
             None
         };
-        
+
         let message_count = VarInt::read(reader)?;
-        
+
         let acknowledged_length = VarInt::read(reader)?;
         let mut acknowledged = vec![0u8; acknowledged_length.0 as usize];
         reader.read_exact(&mut acknowledged)?;
-        
+
         Ok(ChatMessagePacket {
             message,
             timestamp,
@@ -113,22 +113,22 @@ impl Packet for ChatMessagePacket {
             acknowledged,
         })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         self.message.write(writer)?;
         writer.write_all(&self.timestamp.to_be_bytes())?;
         writer.write_all(&self.salt.to_be_bytes())?;
-        
+
         crate::protocol::types::write_bool(self.signature.is_some(), writer)?;
         if let Some(ref signature) = self.signature {
             VarInt(signature.len() as i32).write(writer)?;
             writer.write_all(signature)?;
         }
-        
+
         self.message_count.write(writer)?;
         VarInt(self.acknowledged.len() as i32).write(writer)?;
         writer.write_all(&self.acknowledged)?;
-        
+
         Ok(())
     }
 }
@@ -150,25 +150,25 @@ pub struct PlayerPositionPacket {
 
 impl Packet for PlayerPositionPacket {
     const ID: i32 = 0x1A;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let mut x_bytes = [0u8; 8];
         reader.read_exact(&mut x_bytes)?;
         let x = f64::from_be_bytes(x_bytes);
-        
+
         let mut y_bytes = [0u8; 8];
         reader.read_exact(&mut y_bytes)?;
         let y = f64::from_be_bytes(y_bytes);
-        
+
         let mut z_bytes = [0u8; 8];
         reader.read_exact(&mut z_bytes)?;
         let z = f64::from_be_bytes(z_bytes);
-        
+
         let on_ground = crate::protocol::types::read_bool(reader)?;
-        
+
         Ok(PlayerPositionPacket { x, y, z, on_ground })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         writer.write_all(&self.x.to_be_bytes())?;
         writer.write_all(&self.y.to_be_bytes())?;
@@ -191,13 +191,13 @@ pub struct BlockChangePacket {
 
 impl Packet for BlockChangePacket {
     const ID: i32 = 0x09;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let position = Position::read(reader)?;
         let block_id = VarInt::read(reader)?;
         Ok(BlockChangePacket { position, block_id })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         self.position.write(writer)?;
         self.block_id.write(writer)?;
@@ -209,6 +209,6 @@ impl ClientboundPacket for BlockChangePacket {}
 
 // TODO: Add more play packets as needed
 // - Chunk data packets
-// - Entity packets  
+// - Entity packets
 // - Inventory packets
 // - etc.

@@ -8,15 +8,15 @@ pub enum ServerError {
     /// IO error
     #[error("Network error: {0}")]
     Io(#[from] std::io::Error),
-    
+
     /// Protocol error
     #[error("Protocol error: {0}")]
     Protocol(String),
-    
+
     /// Compression error
     #[error("Compression error: {0}")]
     Compression(#[from] flate2::CompressError),
-    
+
     /// Decompression error
     #[error("Decompression error: {0}")]
     Decompression(#[from] flate2::DecompressError),

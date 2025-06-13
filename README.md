@@ -45,7 +45,7 @@ Obsidium is a modern Minecraft Java Edition server built from the ground up in R
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/obsidium.git
+git clone https://github.com/OmarAfet/obsidium.git
 cd obsidium
 
 # Build the project
@@ -113,7 +113,7 @@ This project is in early development and welcomes contributions! Here are some w
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/obsidium.git
+git clone https://github.com/OmarAfet/obsidium.git
 cd obsidium
 
 # Run tests
@@ -153,12 +153,3 @@ cargo clippy
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- Inspired by the Minecraft protocol documentation at [wiki.vg](https://wiki.vg)
-- Built with the excellent Rust ecosystem, particularly [Tokio](https://tokio.rs) for async networking
-
----
-
-**Note**: This is an independent implementation and is not affiliated with Mojang Studios or Microsoft.

@@ -23,17 +23,17 @@ pub struct HandshakePacket {
 
 impl Packet for HandshakePacket {
     const ID: i32 = 0x00;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let protocol_version = VarInt::read(reader)?;
         let server_address = McString::read(reader)?;
-        
+
         let mut port_bytes = [0u8; 2];
         reader.read_exact(&mut port_bytes)?;
         let server_port = u16::from_be_bytes(port_bytes);
-        
+
         let next_state = VarInt::read(reader)?;
-        
+
         Ok(HandshakePacket {
             protocol_version,
             server_address,
@@ -41,7 +41,7 @@ impl Packet for HandshakePacket {
             next_state,
         })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         self.protocol_version.write(writer)?;
         self.server_address.write(writer)?;
@@ -64,14 +64,15 @@ pub enum NextState {
 
 impl TryFrom<VarInt> for NextState {
     type Error = crate::error::ServerError;
-    
+
     fn try_from(value: VarInt) -> Result<Self> {
         match value.0 {
             1 => Ok(NextState::Status),
             2 => Ok(NextState::Login),
-            _ => Err(crate::error::ServerError::Protocol(
-                format!("Invalid next state: {}", value.0)
-            )),
+            _ => Err(crate::error::ServerError::Protocol(format!(
+                "Invalid next state: {}",
+                value.0
+            ))),
         }
     }
 }

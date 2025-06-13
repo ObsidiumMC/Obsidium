@@ -3,7 +3,7 @@
 //! This module handles accepting new connections and managing the server socket.
 
 use crate::config::ServerConfig;
-use crate::error::{ServerError, Result};
+use crate::error::{Result, ServerError};
 use crate::network::Connection;
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
@@ -26,23 +26,23 @@ impl ServerListener {
         connection_sender: mpsc::UnboundedSender<Connection>,
     ) -> Result<Self> {
         let listener = TcpListener::bind(config.bind_address).await?;
-        
+
         Ok(Self {
             listener,
             config,
             connection_sender,
         })
     }
-    
+
     /// Start accepting connections
     pub async fn listen(&self) -> Result<()> {
         loop {
             match self.listener.accept().await {
                 Ok((stream, addr)) => {
                     tracing::debug!("New connection from {}", addr);
-                    
+
                     let connection = Connection::new(stream, addr);
-                    
+
                     if let Err(e) = self.connection_sender.send(connection) {
                         tracing::error!("Failed to send connection to handler: {}", e);
                     }
@@ -54,12 +54,12 @@ impl ServerListener {
             }
         }
     }
-    
+
     /// Get the local address the server is bound to
     pub fn local_addr(&self) -> Result<SocketAddr> {
         self.listener.local_addr().map_err(ServerError::from)
     }
-    
+
     /// Get the server configuration
     pub fn config(&self) -> &ServerConfig {
         &self.config

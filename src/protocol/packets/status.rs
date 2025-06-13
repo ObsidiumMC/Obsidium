@@ -13,11 +13,11 @@ pub struct StatusRequestPacket;
 
 impl Packet for StatusRequestPacket {
     const ID: i32 = 0x00;
-    
+
     fn read<R: Read>(_reader: &mut R) -> Result<Self> {
         Ok(StatusRequestPacket)
     }
-    
+
     fn write<W: Write>(&self, _writer: &mut W) -> Result<()> {
         Ok(())
     }
@@ -34,12 +34,12 @@ pub struct StatusResponsePacket {
 
 impl Packet for StatusResponsePacket {
     const ID: i32 = 0x00;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let json_response = McString::read(reader)?;
         Ok(StatusResponsePacket { json_response })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         self.json_response.write(writer)?;
         Ok(())
@@ -57,14 +57,14 @@ pub struct PingRequestPacket {
 
 impl Packet for PingRequestPacket {
     const ID: i32 = 0x01;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let mut bytes = [0u8; 8];
         reader.read_exact(&mut bytes)?;
         let payload = i64::from_be_bytes(bytes);
         Ok(PingRequestPacket { payload })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         writer.write_all(&self.payload.to_be_bytes())?;
         Ok(())
@@ -82,14 +82,14 @@ pub struct PingResponsePacket {
 
 impl Packet for PingResponsePacket {
     const ID: i32 = 0x01;
-    
+
     fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let mut bytes = [0u8; 8];
         reader.read_exact(&mut bytes)?;
         let payload = i64::from_be_bytes(bytes);
         Ok(PingResponsePacket { payload })
     }
-    
+
     fn write<W: Write>(&self, writer: &mut W) -> Result<()> {
         writer.write_all(&self.payload.to_be_bytes())?;
         Ok(())
@@ -156,13 +156,15 @@ pub enum Description {
 impl ServerStatus {
     /// Convert to JSON string
     pub fn to_json(&self) -> Result<String> {
-        serde_json::to_string(self)
-            .map_err(|e| crate::error::ServerError::Protocol(format!("JSON serialization error: {}", e)))
+        serde_json::to_string(self).map_err(|e| {
+            crate::error::ServerError::Protocol(format!("JSON serialization error: {}", e))
+        })
     }
-    
+
     /// Create from JSON string
     pub fn from_json(json: &str) -> Result<Self> {
-        serde_json::from_str(json)
-            .map_err(|e| crate::error::ServerError::Protocol(format!("JSON deserialization error: {}", e)))
+        serde_json::from_str(json).map_err(|e| {
+            crate::error::ServerError::Protocol(format!("JSON deserialization error: {}", e))
+        })
     }
 }

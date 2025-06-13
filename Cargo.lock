@@ -233,7 +233,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "obsidiuim"
+name = "obsidium"
 version = "0.1.0"
 dependencies = [
  "async-trait",

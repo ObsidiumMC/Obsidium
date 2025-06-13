@@ -11,28 +11,28 @@ use std::time::Duration;
 pub struct ServerConfig {
     /// Server bind address
     pub bind_address: SocketAddr,
-    
+
     /// Maximum number of concurrent players
     pub max_players: u32,
-    
+
     /// Server description (MOTD)
     pub motd: String,
-    
+
     /// Online mode (authentication with Mojang)
     pub online_mode: bool,
-    
+
     /// Compression threshold in bytes
     pub compression_threshold: Option<u32>,
-    
+
     /// Connection timeout
     pub connection_timeout: Duration,
-    
+
     /// View distance in chunks
     pub view_distance: u8,
-    
+
     /// Simulation distance in chunks  
     pub simulation_distance: u8,
-    
+
     /// Enable debug logging
     pub debug: bool,
 }
@@ -42,7 +42,7 @@ impl Default for ServerConfig {
         Self {
             bind_address: "0.0.0.0:25565".parse().unwrap(),
             max_players: 20,
-            motd: "An Obsidium Minecraft Server".to_string(),
+            motd: "A high-performance Minecraft server written in Rust.".to_string(),
             online_mode: true,
             compression_threshold: Some(256),
             connection_timeout: Duration::from_secs(30),
@@ -58,37 +58,37 @@ impl ServerConfig {
     pub fn new() -> Self {
         Self::default()
     }
-    
+
     /// Set the server bind address
     pub fn with_bind_address(mut self, addr: SocketAddr) -> Self {
         self.bind_address = addr;
         self
     }
-    
+
     /// Set the maximum number of players
     pub fn with_max_players(mut self, max: u32) -> Self {
         self.max_players = max;
         self
     }
-    
+
     /// Set the server MOTD
     pub fn with_motd(mut self, motd: String) -> Self {
         self.motd = motd;
         self
     }
-    
+
     /// Set online mode
     pub fn with_online_mode(mut self, online: bool) -> Self {
         self.online_mode = online;
         self
     }
-    
+
     /// Set compression threshold
     pub fn with_compression_threshold(mut self, threshold: Option<u32>) -> Self {
         self.compression_threshold = threshold;
         self
     }
-    
+
     /// Enable debug mode
     pub fn with_debug(mut self, debug: bool) -> Self {
         self.debug = debug;
