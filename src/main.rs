@@ -5,58 +5,29 @@
 #![deny(
     clippy::too_many_lines,
     missing_docs,
-    clippy::uninlined_format_args,
     clippy::panic,
-    unused_variables,
-    unused_imports,
-    unused_must_use
 )]
 
-mod error;
-mod logger;
-
-use error::ServerError;
-use tokio::net::TcpListener;
-use tokio::io::AsyncReadExt;
+use obsidiuim::config::ServerConfig;
+use obsidiuim::logger;
+use obsidiuim::server::MinecraftServer;
+use obsidiuim::Result;
 
 #[tokio::main]
-async fn main() -> Result<(), ServerError> {
+async fn main() -> Result<()> {
     // Initialize logger
     logger::init();
 
-    tracing::info!("Starting Obsidium Minecraft Server...");
-    let listener = match TcpListener::bind("0.0.0.0:25565").await {
-        Ok(l) => l,
-        Err(e) => {
-            tracing::error!("Failed to bind to address: {}", e);
-            return Err(ServerError::Io(e));
-        }
-    };
-    tracing::info!("Server is listening on 0.0.0.0:25565");
-
-    loop {
-        match listener.accept().await {
-            Ok((mut socket, addr)) => {
-                tracing::debug!("New connection from {}", addr);
-
-                tokio::spawn(async move {
-                    let mut buffer = [0; 1024];
-                    match socket.read(&mut buffer).await {
-                        Ok(0) => {
-                            tracing::debug!("Connection closed by peer");
-                        }
-                        Ok(n) => {
-                            tracing::debug!("From ({addr}) received: {:?}", &buffer[..n]);
-                        }
-                        Err(e) => {
-                            tracing::error!("Failed to read from socket: {}", e);
-                        }
-                    }
-                });
-            }
-            Err(e) => {
-                tracing::error!("Failed to accept connection: {}", e);
-            }
-        }
-    }
+    // Create server configuration
+    let config = ServerConfig::new()
+        .with_motd("Obsidium Minecraft Server - Rust Edition".to_string())
+        .with_max_players(999_999_999)
+        .with_compression_threshold(Some(256))
+        .with_debug(std::env::var("RUST_LOG").unwrap_or_default().contains("debug"));
+    
+    // Create and run server
+    let server = MinecraftServer::new(config).await?;
+    server.run().await?;
+    
+    Ok(())
 }
