@@ -22,7 +22,7 @@ async fn main() -> Result<()> {
     let config = ServerConfig::new()
         .with_motd("Obsidium Minecraft Server - Rust Edition".to_string())
         .with_max_players(999_999_999)
-        .with_compression_threshold(Some(256))
+        .with_compression_threshold(None) // Disable compression for now
         .with_debug(std::env::var("RUST_LOG").unwrap_or_default().contains("debug"));
     
     // Create and run server

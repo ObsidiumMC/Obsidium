@@ -87,6 +87,13 @@ impl Connection {
         let mut data = vec![0u8; length];
         self.stream.read_exact(&mut data).await?;
         
+        // Debug: log the raw packet data
+        if data.len() <= 32 {
+            tracing::debug!("Raw packet data: {:02X?}", data);
+        } else {
+            tracing::debug!("Raw packet data (first 32): {:02X?}", &data[..32]);
+        }
+        
         // Handle compression if enabled
         if let Some(ref mut compression) = self.compression {
             compression.decompress_packet(&data)
@@ -106,21 +113,48 @@ impl Connection {
     {
         self.last_activity = Instant::now();
         
-        // Serialize packet
+        // Serialize packet data (without packet ID)
         let mut packet_data = Vec::new();
-        P::id().write(&mut packet_data)?;
         packet.write(&mut packet_data)?;
+        
+        tracing::debug!(
+            "Writing packet ID: 0x{:02X}, data length: {}, compression: {}",
+            P::ID,
+            packet_data.len(),
+            self.compression.is_some()
+        );
         
         // Handle compression if enabled
         let final_data = if let Some(ref mut compression) = self.compression {
-            compression.compress_packet(P::id(), &packet_data[VarInt::from(P::ID).len()..])?
+            compression.compress_packet(P::id(), &packet_data)?
         } else {
-            // Uncompressed - add length prefix
+            // Uncompressed - manually build: length + packet_id + data
             let mut result = Vec::new();
-            VarInt(packet_data.len() as i32).write(&mut result)?;
+            
+            // Calculate total length (packet ID + data)
+            let packet_id = P::id();
+            let total_length = packet_id.len() + packet_data.len();
+            
+            // Write length prefix
+            VarInt(total_length as i32).write(&mut result)?;
+            
+            // Write packet ID
+            packet_id.write(&mut result)?;
+            
+            // Write packet data
             result.extend_from_slice(&packet_data);
+            
             result
         };
+        
+        tracing::debug!("Final packet size: {} bytes", final_data.len());
+        
+        // Debug: log the first few bytes of the packet
+        if final_data.len() <= 32 {
+            tracing::debug!("Packet bytes: {:02X?}", final_data);
+        } else {
+            tracing::debug!("Packet bytes (first 32): {:02X?}", &final_data[..32]);
+        }
         
         // Write to stream
         self.stream.write_all(&final_data).await?;

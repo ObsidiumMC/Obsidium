@@ -80,7 +80,8 @@ impl Packet for LoginSuccessPacket {
             property.write(writer)?;
         }
         
-        crate::protocol::types::write_bool(self.strict_error_handling, writer)?;
+        // TODO: Check if strict_error_handling is needed in 1.21.5
+        // crate::protocol::types::write_bool(self.strict_error_handling, writer)?;
         Ok(())
     }
 }

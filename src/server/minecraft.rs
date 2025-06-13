@@ -121,7 +121,15 @@ impl MinecraftServer {
         loop {
             // Read packet
             let (packet_id, data) = match connection.read_packet().await {
-                Ok(packet) => packet,
+                Ok((pid, pdata)) => {
+                    tracing::debug!(
+                        "Received packet ID: 0x{:02X}, data length: {}, state: {:?}",
+                        pid.0,
+                        pdata.len(),
+                        connection.state()
+                    );
+                    (pid, pdata)
+                }
                 Err(e) => {
                     tracing::debug!("Connection closed: {}", e);
                     break;
