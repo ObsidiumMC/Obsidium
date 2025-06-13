@@ -70,7 +70,7 @@ impl MinecraftServer {
         let listener_addr = listener.local_addr()?;
         
         // Spawn listener task
-        let _listener_handle = tokio::spawn(async move {
+        let listener_handle = tokio::spawn(async move {
             if let Err(e) = listener.listen().await {
                 tracing::error!("Listener error: {}", e);
             }
