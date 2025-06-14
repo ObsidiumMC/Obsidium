@@ -119,3 +119,9 @@ impl LegacyServerListPingPacket {
         Self { payload: 1 }
     }
 }
+
+impl Default for LegacyServerListPingPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -574,7 +574,6 @@ impl<T> From<Optional<T>> for Option<T> {
 }
 
 /// Specialized string types with length limits as defined in the protocol
-
 /// Server address string (max 255 characters)
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ServerAddress(pub String);

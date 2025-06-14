@@ -80,7 +80,7 @@ impl Packet for LoginSuccessPacket {
             property.write(writer)?;
         }
 
-        // TODO: Check if strict_error_handling is needed in 1.21.5
+        // This line is the culprit. Ensure it is COMMENTED OUT or REMOVED.
         // crate::protocol::types::write_bool(self.strict_error_handling, writer)?;
         Ok(())
     }

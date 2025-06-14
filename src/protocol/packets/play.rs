@@ -442,6 +442,12 @@ impl LoginPlayPacket {
     }
 }
 
+impl Default for LoginPlayPacket {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // TODO: Add more play packets as needed
 // - Chunk data packets
 // - Entity packets
