@@ -22,7 +22,9 @@ mod colors {
 
 /// Formats the current time as HH:MM:SS.mmm
 fn format_current_time() -> String {
-    let now = time::OffsetDateTime::now_utc();
+    let now =
+        time::OffsetDateTime::now_utc().to_offset(time::UtcOffset::from_hms(3, 0, 0).unwrap());
+
     format!(
         "{:02}:{:02}:{:02}.{:03}",
         now.hour(),
