@@ -71,9 +71,27 @@ You can customize server settings by modifying the configuration in `src/main.rs
 # Enable debug logging
 RUST_LOG=debug cargo run
 
+# Enable timestamps in logs (disabled by default)
+RUST_LOG_TIME=1 cargo run
+
+# Combine both options
+RUST_LOG=debug RUST_LOG_TIME=1 cargo run
+
 # The server currently uses hardcoded configuration
 # Full configuration file support is planned
 ```
+
+#### Logging Options
+
+The server uses a custom logger with colored output:
+
+- **Default format**: `[INFO] message` (no timestamps)
+- **With timestamps**: `HH:MM:SS.mmm [INFO] message`
+- **Log levels**: `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`
+
+Environment variables:
+- `RUST_LOG`: Set log level (`error`, `warn`, `info`, `debug`, `trace`)
+- `RUST_LOG_TIME`: Enable timestamps (`1` or `true` to enable)
 
 ## Architecture
 
@@ -127,6 +145,9 @@ cargo test
 
 # Run with debug logging
 RUST_LOG=debug cargo run
+
+# Run with debug logging and timestamps
+RUST_LOG=debug RUST_LOG_TIME=1 cargo run
 
 # Check code formatting
 cargo fmt --check
