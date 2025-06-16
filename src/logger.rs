@@ -119,7 +119,7 @@ where
 /// ```bash
 /// # Default format without timestamps
 /// RUST_LOG=debug ./obsidium
-/// 
+///
 /// # Enable timestamps
 /// RUST_LOG=debug RUST_LOG_TIME=1 ./obsidium
 /// ```
