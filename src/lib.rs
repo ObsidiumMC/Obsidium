@@ -20,8 +20,8 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use Obsidium::server::MinecraftServer;
-//! use Obsidium::config::ServerConfig;
+//! use obsidium::server::MinecraftServer;
+//! use obsidium::config::ServerConfig;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
