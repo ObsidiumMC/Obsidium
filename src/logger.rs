@@ -1,4 +1,4 @@
-//! Custom logging implementation for obsidium
+//! Custom logging implementation for Obsidium
 //!
 //! This module provides a beautifully formatted logger with colored output,
 //! custom time formatting, and structured logging capabilities.
@@ -118,10 +118,10 @@ where
 ///
 /// ```bash
 /// # Default format without timestamps
-/// RUST_LOG=debug ./obsidium
+/// RUST_LOG=debug ./Obsidium
 ///
 /// # Enable timestamps
-/// RUST_LOG=debug RUST_LOG_TIME=1 ./obsidium
+/// RUST_LOG=debug RUST_LOG_TIME=1 ./Obsidium
 /// ```
 pub fn init() {
     let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()

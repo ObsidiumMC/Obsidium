@@ -51,8 +51,8 @@ Obsidium is a modern Minecraft Java Edition server built from the ground up in R
 
 ```bash
 # Clone the repository
-git clone https://github.com/OmarAfet/obsidium.git
-cd obsidium
+git clone https://github.com/ObsidiumMC/Obsidium.git
+cd Obsidium
 
 # Build the project
 cargo build --release
@@ -137,8 +137,8 @@ This project is in early development and welcomes contributions! Here are some w
 
 ```bash
 # Clone the repository
-git clone https://github.com/OmarAfet/obsidium.git
-cd obsidium
+git clone https://github.com/ObsidiumMC/Obsidium.git
+cd Obsidium
 
 # Run tests
 cargo test

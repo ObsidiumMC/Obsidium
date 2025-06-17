@@ -2,8 +2,8 @@
 name = "obsidium"
 version = "0.1.0"
 edition = "2024"
-repository = "https://github.com/OmarAfet/obsidium"
-homepage = "https://github.com/OmarAfet/obsidium"
+repository = "https://github.com/ObsidiumMC/Obsidium"
+homepage = "https://github.com/ObsidiumMC/Obsidium"
 description = "A high-performance Minecraft server written in Rust."
 license = "MIT"
 authors = ["Omar Afet"]
