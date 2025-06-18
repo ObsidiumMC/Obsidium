@@ -94,6 +94,5 @@ jobs:
         with:
           files: ${{ steps.prep.outputs.asset_path }}
           body: ${{ steps.release_body.outputs.body }}
-          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
