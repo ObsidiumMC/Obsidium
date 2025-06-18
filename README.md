@@ -2,181 +2,55 @@
 
 # Obsidium
 
-A high-performance Minecraft server implementation written in Rust.
+**A high-performance, Minecraft server written in Rust.**
 
-<a target="_blank" href="https://discord.gg/XyKfC4WjUw"><img src="https://dcbadge.limes.pink/api/server/XyKfC4WjUw" alt="" /></a>
+[![Code Quality Checks](https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml/badge.svg)](https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml)
+[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.6-brightgreen.svg)](https://www.minecraft.net)
+[![Rust Version](https://img.shields.io/badge/rust-1.87.0-blue.svg)](https://www.rust-lang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 </div>
 
-## Overview
+## Current State: Under Development
 
-Obsidium is a modern Minecraft Java Edition server built from the ground up in Rust, focusing on performance, modularity, and maintainability. It implements the Minecraft protocol version 770 (Minecraft 1.21.5).
+Obsidium is currently under heavy development and is not yet ready for gameplay.
 
-## Current Status
+**What works:**
+-   The server starts and listens for connections.
+-   Clients can see the server in their multiplayer list (server list ping).
+-   Players can successfully connect and log in, passing the handshaking, login, and configuration states.
 
-⚠️ **Early Development** - This project is in active development and not yet ready for production use.
+**What does not work:**
+-   **Players cannot spawn in the world yet.**
 
-### What Currently Works
+## Getting Started
 
-- ✅ Network layer with connection management
-- ✅ Basic protocol implementation (handshaking, status, login)
-- ✅ Server list ping functionality
-- ✅ Player authentication (offline mode)
-- ✅ Packet compression support
-- ✅ Player connection/disconnection handling
-- ✅ Configurable server settings
-- ✅ Beautiful colored logging
+The easiest way to run Obsidium is to use a pre-built binary from the [Releases](https://github.com/ObsidiumMC/Obsidium/releases) page.
 
-### What's Not Implemented Yet
+1.  Download the executable for your operating system (Windows, Linux, or macOS).
+2.  Run the executable from your terminal.
 
-- ❌ World initialization - Players get stuck on "Joining world..." and timeout
-- ❌ Chunk streaming to players (chunks exist but aren't sent)
-- ❌ Player spawn and positioning packets
-- ❌ Most gameplay packets (movement, block interactions, etc.)
-- ❌ Entity spawning and management
-- ❌ Inventory system
-- ❌ World persistence
-- ❌ Online mode (Mojang authentication)
-- ❌ Command system
-- ❌ Plugin/mod support
+That's it! The server is now running on your machine at `localhost:25565`.
 
-## Quick Start
+## Building from Source
 
-### Prerequisites
+If you want to contribute or build the server yourself, you'll need the Rust toolchain.
 
-- Rust 1.70 or later
-- Cargo (comes with Rust)
-
-### Building and Running
-
-```bash
-# Clone the repository
-git clone https://github.com/ObsidiumMC/Obsidium.git
-cd Obsidium
-
-# Build the project
-cargo build --release
-
-# Run the server
-cargo run --release
-```
-
-The server will start on `localhost:25565` by default.
-
-### Configuration
-
-You can customize server settings by modifying the configuration in `src/main.rs` or by setting environment variables:
-
-```bash
-# Enable debug logging
-RUST_LOG=debug cargo run
-
-# Enable timestamps in logs (disabled by default)
-RUST_LOG_TIME=1 cargo run
-
-# Combine both options
-RUST_LOG=debug RUST_LOG_TIME=1 cargo run
-
-# The server currently uses hardcoded configuration
-# Full configuration file support is planned
-```
-
-#### Logging Options
-
-The server uses a custom logger with colored output:
-
-- **Default format**: `[INFO] message` (no timestamps)
-- **With timestamps**: `HH:MM:SS.mmm [INFO] message`
-- **Log levels**: `ERROR`, `WARN`, `INFO`, `DEBUG`, `TRACE`
-
-Environment variables:
-- `RUST_LOG`: Set log level (`error`, `warn`, `info`, `debug`, `trace`)
-- `RUST_LOG_TIME`: Enable timestamps (`1` or `true` to enable)
-
-## Architecture
-
-```
-src/
-├── config/          # Server configuration management
-├── error.rs         # Error handling and types
-├── game/            # Game logic
-│   ├── entity/      # Entity system
-│   ├── player.rs    # Player management
-│   └── world/       # World and chunk management
-├── logger.rs        # Custom logging implementation
-├── network/         # Low-level networking
-│   ├── connection.rs # Connection handling
-│   └── listener.rs   # Server listener
-├── protocol/        # Minecraft protocol implementation
-│   ├── packets/     # Packet definitions by state
-│   ├── types.rs     # Protocol data types
-│   └── compression.rs # Packet compression
-└── server/          # Main server implementation
-```
-
-## Testing
-
-You can test the server using any Minecraft 1.21.5 client:
-
-1. Start the server with `cargo run`
-2. In Minecraft, add a server with address `localhost:25565`
-3. The server should appear in your server list and show as online
-4. **Note**: Attempting to join will currently result in a timeout at "Joining world..." - world initialization packets are not yet implemented
+1.  **Install Rust:** Get it from [rustup.rs](https://rustup.rs/).
+2.  **Clone the repository:**
+    ```sh
+    git clone https://github.com/ObsidiumMC/Obsidium.git
+    cd Obsidium
+    ```
+3.  **Run the server:**
+    ```sh
+    cargo run
+    ```
 
 ## Contributing
 
-This project is in early development and welcomes contributions! Here are some ways you can help:
-
-- **Implement missing packets**: Many play-state packets need implementation
-- **Add gameplay features**: Block interactions, entity movement, etc.
-- **Improve world generation**: Currently only generates flat worlds
-- **Add tests**: More comprehensive test coverage is needed
-- **Documentation**: Help improve documentation and examples
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/ObsidiumMC/Obsidium.git
-cd Obsidium
-
-# Run tests
-cargo test
-
-# Run with debug logging
-RUST_LOG=debug cargo run
-
-# Run with debug logging and timestamps
-RUST_LOG=debug RUST_LOG_TIME=1 cargo run
-
-# Check code formatting
-cargo fmt --check
-
-# Run linter
-cargo clippy
-```
-
-## Roadmap
-
-### Short Term (v0.1)
-- [ ] World initialization packets - Allow players to actually join the server
-- [ ] Chunk streaming to players
-- [ ] Basic player movement synchronization
-- [ ] Block breaking and placing
-- [ ] Basic inventory system
-
-### Medium Term (v0.2)
-- [ ] World persistence and loading
-- [ ] Online mode with Mojang authentication
-- [ ] Entity AI and spawning
-- [ ] Basic command system
-
-### Long Term (v1.0)
-- [ ] Plugin/mod API
-- [ ] Performance optimizations
-- [ ] Full feature parity with vanilla
-- [ ] Administration tools
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the [MIT License](LICENSE).
