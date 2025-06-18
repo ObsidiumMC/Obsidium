@@ -50,7 +50,7 @@ impl MinecraftServer {
                 // Try to load from file path
                 match crate::favicon::load_favicon_from_file(favicon_path) {
                     Ok(favicon_data) => {
-                        tracing::info!(
+                        tracing::debug!(
                             "Loaded favicon from: {} (encoded length: {})",
                             favicon_path,
                             favicon_data.len()
@@ -86,7 +86,7 @@ impl MinecraftServer {
             },
             players: PlayersInfo {
                 max: config.max_players,
-                online: 0,
+                online: 0, // TODO: Update dynamically
                 sample: None,
             },
             description: Description::Text(config.motd.clone()),

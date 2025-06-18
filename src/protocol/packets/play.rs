@@ -430,7 +430,7 @@ impl LoginPlayPacket {
             hashed_seed: 12345,     // Use world seed hash
             game_mode: 0,           // Survival mode
             previous_game_mode: -1, // No previous game mode
-            is_debug: config.debug,
+            is_debug: false,
             is_flat: false,
             has_death_location: false,
             death_dimension_name: None,
@@ -511,12 +511,11 @@ mod tests {
         assert_eq!(position.y, 64);
         assert_eq!(position.z, -200);
     }
-
     #[test]
     fn test_login_play_packet_from_server_config() {
         use crate::config::ServerConfig;
 
-        let config = ServerConfig::new().with_debug(true);
+        let config = ServerConfig::new();
         let packet = LoginPlayPacket::from_server_config(&config, 42);
 
         assert_eq!(packet.entity_id, 42);
@@ -525,7 +524,7 @@ mod tests {
             packet.simulation_distance.0,
             config.simulation_distance as i32
         );
-        assert_eq!(packet.is_debug, config.debug);
+        assert!(!packet.is_debug);
         assert_eq!(packet.max_players.0, config.max_players as i32);
     }
 }

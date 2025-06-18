@@ -29,12 +29,8 @@ pub struct ServerConfig {
 
     /// View distance in chunks
     pub view_distance: u8,
-
     /// Simulation distance in chunks  
     pub simulation_distance: u8,
-
-    /// Enable debug logging
-    pub debug: bool,
 
     /// Server favicon (path to 64x64 PNG file or base64 data URL)
     pub favicon: Option<String>,
@@ -45,13 +41,13 @@ impl Default for ServerConfig {
         Self {
             bind_address: "0.0.0.0:25565".parse().unwrap(),
             max_players: 20,
-            motd: "A high-performance Minecraft server written in Rust.".to_string(),
+            motd: "Welcome to Obsidium - an experimental Minecraft server written in Rust!"
+                .to_string(),
             online_mode: true,
             compression_threshold: Some(256),
             connection_timeout: Duration::from_secs(30),
-            view_distance: 10,
-            simulation_distance: 10,
-            debug: false,
+            view_distance: 12,
+            simulation_distance: 12,
             favicon: None,
         }
     }
@@ -86,16 +82,9 @@ impl ServerConfig {
         self.online_mode = online;
         self
     }
-
     /// Set compression threshold
     pub fn with_compression_threshold(mut self, threshold: Option<u32>) -> Self {
         self.compression_threshold = threshold;
-        self
-    }
-
-    /// Enable debug mode
-    pub fn with_debug(mut self, debug: bool) -> Self {
-        self.debug = debug;
         self
     }
 
