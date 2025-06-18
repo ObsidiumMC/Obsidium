@@ -2,7 +2,7 @@
 
 # Obsidium
 
-**A high-performance, Minecraft server written in Rust.**
+**A high-performance Minecraft server written in Rust.**
 
 <p>
     <a target="_blank" href="https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml"><img src="https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml/badge.svg" alt="Code Quality Checks" /></a>
@@ -26,7 +26,7 @@ Obsidium is currently under heavy development and is not yet ready for gameplay.
 -   Players can successfully connect and log in, passing the handshaking, login, and configuration states.
 
 **What does not work:**
--   **Players cannot spawn in the world yet.**
+-   Players cannot spawn in the world yet.
 
 ## Getting Started
 
