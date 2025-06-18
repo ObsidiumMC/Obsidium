@@ -70,8 +70,8 @@ jobs:
           mkdir -p release
           
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${RELEASE_NAME}${! matrix.extension }}"
-            echo "asset_path=release/${RELEASE_NAME}${! matrix.extension }}" >> $GITHUB_OUTPUT
+            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${RELEASE_NAME}${ matrix.extension }}"
+            echo "asset_path=release/${RELEASE_NAME}${ matrix.extension }}" >> $GITHUB_OUTPUT
           else
             # CORRECTED: Use the BINARY_NAME variable instead of a hardcoded name
             cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${BINARY_NAME}"
