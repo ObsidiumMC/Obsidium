@@ -33,6 +33,9 @@ jobs:
             extension: ""
     steps:
       - uses: actions/checkout@v4
+        with:
+          # We need the full git history to generate a changelog between tags
+          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -48,14 +51,16 @@ jobs:
         shell: bash
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          BINARY_NAME="Obsidium${{ matrix.extension }}"
-          RELEASE_NAME="Obsidium-$TAG_NAME-${{ matrix.name }}"
+          BINARY_NAME="obsidium${{ matrix.extension }}"
+          RELEASE_NAME="obsidium-$TAG_NAME-${{ matrix.name }}"
+          
           mkdir -p release
+          
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${RELEASE_NAME}${{ matrix.extension }}"
             echo "asset_path=release/${RELEASE_NAME}${{ matrix.extension }}" >> $GITHUB_OUTPUT
           else
-            cp "target/${{ matrix.target }}/release/Obsidium" "release/${BINARY_NAME}"
+            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${BINARY_NAME}"
             cd release
             tar -czf "${RELEASE_NAME}.tar.gz" "${BINARY_NAME}"
             rm "${BINARY_NAME}"
@@ -66,7 +71,6 @@ jobs:
         id: release_body
         shell: bash
         run: |
-          # Get commit history since the last tag (or all commits if no previous tag)
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$LAST_TAG" ]; then
             COMMITS=$(git log --oneline --no-merges --reverse ${LAST_TAG}..HEAD)
@@ -74,7 +78,6 @@ jobs:
             COMMITS=$(git log --oneline --no-merges --reverse)
           fi
           
-          # Format commits as "MESSAGE (HASH)"
           RELEASE_BODY=""
           while IFS= read -r line; do
             if [ -n "$line" ]; then
@@ -84,7 +87,6 @@ jobs:
             fi
           done <<< "$COMMITS"
           
-          # Save to output (remove trailing newline)
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo -n "$RELEASE_BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
