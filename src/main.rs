@@ -25,19 +25,20 @@ async fn main() -> Result<()> {
             tracing::info!("server.properties not found, creating default configuration");
             let config = ServerConfig::new()
                 .with_motd(
-                    "Welcome to Obsidium - an experimental Minecraft server written in Rust!".to_string(),
+                    "Welcome to Obsidium - an experimental Minecraft server written in Rust!"
+                        .to_string(),
                 )
                 .with_max_players(999_999_999)
                 .with_compression_threshold(Some(256))
                 .with_favicon(Some("server-icon.png".to_string()));
-            
+
             // Save the default configuration to server.properties
             if let Err(e) = config.save_properties_file("server.properties") {
                 tracing::warn!("Failed to save server.properties: {}", e);
             } else {
                 tracing::info!("Created default server.properties file");
             }
-            
+
             config
         }
         Err(e) => {
@@ -45,7 +46,8 @@ async fn main() -> Result<()> {
             tracing::info!("Using default configuration");
             ServerConfig::new()
                 .with_motd(
-                    "Welcome to Obsidium - an experimental Minecraft server written in Rust!".to_string(),
+                    "Welcome to Obsidium - an experimental Minecraft server written in Rust!"
+                        .to_string(),
                 )
                 .with_max_players(999_999_999)
                 .with_compression_threshold(Some(256))

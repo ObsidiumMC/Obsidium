@@ -23,9 +23,8 @@ mod colors {
 /// Formats the current time as HH:MM:SS.mmm
 fn format_current_time() -> String {
     // Try to get local time, fall back to UTC if local time is not available
-    let now = time::OffsetDateTime::now_utc().to_offset(
-        time::UtcOffset::current_local_offset().unwrap_or(time::UtcOffset::UTC)
-    );
+    let now = time::OffsetDateTime::now_utc()
+        .to_offset(time::UtcOffset::current_local_offset().unwrap_or(time::UtcOffset::UTC));
 
     format!(
         "{:02}:{:02}:{:02}.{:03}",

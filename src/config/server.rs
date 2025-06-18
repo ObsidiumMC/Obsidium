@@ -79,14 +79,15 @@ impl ServerConfig {
     pub fn from_properties(props: ServerProperties) -> Result<Self, ServerError> {
         let server_ip = props.server_ip().unwrap_or(&String::new()).clone();
         let server_port = props.server_port();
-        
+
         let bind_address = if server_ip.is_empty() {
             format!("0.0.0.0:{}", server_port)
         } else {
             format!("{}:{}", server_ip, server_port)
         };
 
-        let bind_address: SocketAddr = bind_address.parse()
+        let bind_address: SocketAddr = bind_address
+            .parse()
             .map_err(|e| ServerError::Protocol(format!("Invalid bind address: {}", e)))?;
 
         let compression_threshold = match props.network_compression_threshold() {
@@ -111,7 +112,7 @@ impl ServerConfig {
     /// Convert to ServerProperties
     pub fn to_properties(&self) -> ServerProperties {
         let mut props = ServerProperties::new();
-        
+
         // Set basic server properties
         props.set_server_ip(&self.bind_address.ip().to_string());
         props.set_server_port(self.bind_address.port());
@@ -120,7 +121,7 @@ impl ServerConfig {
         props.set_online_mode(self.online_mode);
         props.set_view_distance(self.view_distance);
         props.set_simulation_distance(self.simulation_distance);
-        
+
         if let Some(threshold) = self.compression_threshold {
             props.set_network_compression_threshold(threshold as i32);
         } else {
