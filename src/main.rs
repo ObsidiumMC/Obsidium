@@ -12,13 +12,12 @@ use obsidium::server::MinecraftServer;
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logger
-    logger::init();
-
-    // Create server configuration
+    logger::init();    // Create server configuration
     let config = ServerConfig::new()
-        .with_motd("A high-performance Minecraft server written in Rust.".to_string())
+        .with_motd("Welcome to Obsidium MC - A blazingly fast Rust-powered server!".to_string())
         .with_max_players(999_999_999)
-        .with_compression_threshold(None) // Disable compression for now
+        .with_compression_threshold(Some(256))
+        .with_favicon(Some("server-icon.png".to_string()))
         .with_debug(
             std::env::var("RUST_LOG")
                 .unwrap_or_default()

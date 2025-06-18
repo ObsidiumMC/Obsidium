@@ -43,14 +43,10 @@ pub struct LoginSuccessPacket {
     pub username: McString,
     /// Player properties
     pub properties: Vec<Property>,
-    /// Strict error handling enabled
-    pub strict_error_handling: bool,
 }
 
 impl Packet for LoginSuccessPacket {
-    const ID: i32 = 0x02;
-
-    fn read<R: Read>(reader: &mut R) -> Result<Self> {
+    const ID: i32 = 0x02;    fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let uuid = crate::protocol::types::read_uuid(reader)?;
         let username = McString::read(reader)?;
 
@@ -61,13 +57,10 @@ impl Packet for LoginSuccessPacket {
             properties.push(Property::read(reader)?);
         }
 
-        let strict_error_handling = crate::protocol::types::read_bool(reader)?;
-
         Ok(LoginSuccessPacket {
             uuid,
             username,
             properties,
-            strict_error_handling,
         })
     }
 

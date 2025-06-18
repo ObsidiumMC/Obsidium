@@ -35,6 +35,9 @@ pub struct ServerConfig {
 
     /// Enable debug logging
     pub debug: bool,
+
+    /// Server favicon (path to 64x64 PNG file or base64 data URL)
+    pub favicon: Option<String>,
 }
 
 impl Default for ServerConfig {
@@ -49,6 +52,7 @@ impl Default for ServerConfig {
             view_distance: 10,
             simulation_distance: 10,
             debug: false,
+            favicon: None,
         }
     }
 }
@@ -92,6 +96,12 @@ impl ServerConfig {
     /// Enable debug mode
     pub fn with_debug(mut self, debug: bool) -> Self {
         self.debug = debug;
+        self
+    }
+
+    /// Set server favicon (path to PNG file or base64 data URL)
+    pub fn with_favicon(mut self, favicon: Option<String>) -> Self {
+        self.favicon = favicon;
         self
     }
 }

@@ -36,6 +36,7 @@
 
 pub mod config;
 pub mod error;
+pub mod favicon;
 pub mod game;
 pub mod logger;
 pub mod network;

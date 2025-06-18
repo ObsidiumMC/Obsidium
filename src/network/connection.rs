@@ -104,16 +104,13 @@ impl Connection {
             let remaining_data = data[cursor.position() as usize..].to_vec();
             Ok((packet_id, remaining_data))
         }
-    }
-
-    /// Write a packet to the connection
+    }    /// Write a packet to the connection
     pub async fn write_packet<P>(&mut self, packet: &P) -> Result<()>
     where
         P: crate::protocol::packets::Packet,
     {
         self.last_activity = Instant::now();
 
-        // Serialize packet data (without packet ID)
         let mut packet_data = Vec::new();
         packet.write(&mut packet_data)?;
 
@@ -124,40 +121,36 @@ impl Connection {
             self.compression.is_some()
         );
 
-        // Handle compression if enabled
-        let final_data = if let Some(ref mut compression) = self.compression {
-            compression.compress_packet(P::id(), &packet_data)?
+        let final_packet = if let Some(ref mut compression) = self.compression {
+            // Get the payload (Data Length + Data)
+            let payload = compression.compress_packet(P::id(), &packet_data)?;
+            
+            // Prepend the Packet Length
+            let mut buffer = Vec::new();
+            VarInt(payload.len() as i32).write(&mut buffer)?;
+            buffer.extend_from_slice(&payload);
+            buffer
         } else {
-            // Uncompressed - manually build: length + packet_id + data
-            let mut result = Vec::new();
+            // Prepend the Packet Length to the uncompressed payload (PacketID + Data)
+            let mut uncompressed_payload = Vec::new();
+            P::id().write(&mut uncompressed_payload)?;
+            uncompressed_payload.extend_from_slice(&packet_data);
 
-            // Calculate total length (packet ID + data)
-            let packet_id = P::id();
-            let total_length = packet_id.len() + packet_data.len();
-
-            // Write length prefix
-            VarInt(total_length as i32).write(&mut result)?;
-
-            // Write packet ID
-            packet_id.write(&mut result)?;
-
-            // Write packet data
-            result.extend_from_slice(&packet_data);
-
-            result
+            let mut buffer = Vec::new();
+            VarInt(uncompressed_payload.len() as i32).write(&mut buffer)?;
+            buffer.extend_from_slice(&uncompressed_payload);
+            buffer
         };
 
-        tracing::debug!("Final packet size: {} bytes", final_data.len());
+        tracing::debug!("Final packet size: {} bytes", final_packet.len());
 
-        // Debug: log the first few bytes of the packet
-        if final_data.len() <= 32 {
-            tracing::debug!("Packet bytes: {:02X?}", final_data);
+        if final_packet.len() <= 32 {
+            tracing::debug!("Packet bytes: {:02X?}", final_packet);
         } else {
-            tracing::debug!("Packet bytes (first 32): {:02X?}", &final_data[..32]);
+            tracing::debug!("Packet bytes (first 32): {:02X?}", &final_packet[..32]);
         }
 
-        // Write to stream
-        self.stream.write_all(&final_data).await?;
+        self.stream.write_all(&final_packet).await?;
         self.stream.flush().await?;
 
         Ok(())
