@@ -170,13 +170,13 @@ impl MinecraftServer {
 
         // Abort the listener task
         listener_handle.abort();
-        
+
         // Log current player count
         let player_count = self.players.player_count().await;
         if player_count > 0 {
             tracing::info!("Disconnecting {} connected player(s)...", player_count);
         }
-        
+
         tracing::info!("Server shutdown complete");
         Ok(())
     }
