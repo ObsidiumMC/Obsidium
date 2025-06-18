@@ -29,7 +29,7 @@ pub use state::{ConnectionState, ProtocolState};
 pub use types::{McString, McUuid, Position, VarInt, VarLong};
 
 /// Minecraft version string
-pub const MINECRAFT_VERSION: &str = "1.21.6"; 
+pub const MINECRAFT_VERSION: &str = "1.21.6";
 
 /// Protocol version constant
 pub const PROTOCOL_VERSION: i32 = 771;

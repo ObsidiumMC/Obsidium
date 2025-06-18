@@ -12,7 +12,7 @@ use obsidium::server::MinecraftServer;
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logger
-    logger::init();    // Create server configuration
+    logger::init(); // Create server configuration
     let config = ServerConfig::new()
         .with_motd("Welcome to Obsidium MC - A blazingly fast Rust-powered server!".to_string())
         .with_max_players(999_999_999)

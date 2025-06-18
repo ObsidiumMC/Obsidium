@@ -36,18 +36,26 @@ pub struct MinecraftServer {
 
 impl MinecraftServer {
     /// Create a new Minecraft server
-    pub async fn new(config: ServerConfig) -> Result<Self> {        // Load favicon if configured
+    pub async fn new(config: ServerConfig) -> Result<Self> {
+        // Load favicon if configured
         let favicon = if let Some(ref favicon_path) = config.favicon {
             if favicon_path.starts_with("data:image/png;base64,") {
                 // Already a data URL, use as-is
-                tracing::info!("Using provided favicon data URL (length: {})", favicon_path.len());
+                tracing::info!(
+                    "Using provided favicon data URL (length: {})",
+                    favicon_path.len()
+                );
                 Some(favicon_path.clone())
             } else {
                 // Try to load from file path
                 match crate::favicon::load_favicon_from_file(favicon_path) {
                     Ok(favicon_data) => {
-                        tracing::info!("Loaded favicon from: {} (encoded length: {})", favicon_path, favicon_data.len());
-                        
+                        tracing::info!(
+                            "Loaded favicon from: {} (encoded length: {})",
+                            favicon_path,
+                            favicon_data.len()
+                        );
+
                         // Check if the favicon is too large for Minecraft protocol
                         if favicon_data.len() > crate::protocol::types::McString::MAX_LENGTH {
                             tracing::error!(
@@ -293,7 +301,7 @@ impl MinecraftServer {
                 };
                 connection.write_packet(&compression_packet).await?;
                 connection.enable_compression(threshold)?;
-            }            // Send login success
+            } // Send login success
             let login_success = LoginSuccessPacket {
                 uuid: login_start.player_uuid,
                 username: login_start.name.clone(),

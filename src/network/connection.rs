@@ -104,7 +104,8 @@ impl Connection {
             let remaining_data = data[cursor.position() as usize..].to_vec();
             Ok((packet_id, remaining_data))
         }
-    }    /// Write a packet to the connection
+    }
+    /// Write a packet to the connection
     pub async fn write_packet<P>(&mut self, packet: &P) -> Result<()>
     where
         P: crate::protocol::packets::Packet,
@@ -124,7 +125,7 @@ impl Connection {
         let final_packet = if let Some(ref mut compression) = self.compression {
             // Get the payload (Data Length + Data)
             let payload = compression.compress_packet(P::id(), &packet_data)?;
-            
+
             // Prepend the Packet Length
             let mut buffer = Vec::new();
             VarInt(payload.len() as i32).write(&mut buffer)?;

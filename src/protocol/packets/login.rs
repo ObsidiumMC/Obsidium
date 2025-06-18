@@ -46,7 +46,8 @@ pub struct LoginSuccessPacket {
 }
 
 impl Packet for LoginSuccessPacket {
-    const ID: i32 = 0x02;    fn read<R: Read>(reader: &mut R) -> Result<Self> {
+    const ID: i32 = 0x02;
+    fn read<R: Read>(reader: &mut R) -> Result<Self> {
         let uuid = crate::protocol::types::read_uuid(reader)?;
         let username = McString::read(reader)?;
 
