@@ -34,7 +34,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # We need the full git history to generate a changelog between tags
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -95,5 +94,6 @@ jobs:
         with:
           files: ${{ steps.prep.outputs.asset_path }}
           body: ${{ steps.release_body.outputs.body }}
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
