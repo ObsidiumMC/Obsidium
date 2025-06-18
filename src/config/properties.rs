@@ -144,11 +144,13 @@ impl ServerProperties {
             .truncate(true)
             .open(path)?;
         
-        let mut writer = BufWriter::new(file);
-
-        // Write header comments
+        let mut writer = BufWriter::new(file);        // Write header comments
         writeln!(writer, "#Minecraft server properties")?;
-        writeln!(writer, "#{}", time::OffsetDateTime::now_utc().format(&time::format_description::well_known::Rfc2822).unwrap_or_else(|_| "Unknown date".to_string()))?;
+        writeln!(writer, "#{}", 
+            time::OffsetDateTime::now_utc()
+                .to_offset(time::UtcOffset::current_local_offset().unwrap_or(time::UtcOffset::UTC))
+                .format(&time::format_description::well_known::Rfc2822)
+                .unwrap_or_else(|_| "Unknown date".to_string()))?;
 
         // Sort keys for consistent output
         let mut sorted_keys: Vec<_> = self.properties.keys().cloned().collect();

@@ -22,7 +22,7 @@ tracing-subscriber = { version = "0.3", features = [
     "env-filter",
 ] }
 tracing-core = "0.1.34"
-time = { version = "0.3", features = ["formatting", "macros"] }
+time = { version = "0.3", features = ["formatting", "macros", "local-offset"] }
 async-trait = "0.1"
 uuid = { version = "1", features = ["v4"] }
 regex = "1.0"
