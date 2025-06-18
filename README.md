@@ -4,14 +4,19 @@
 
 **A high-performance, Minecraft server written in Rust.**
 
-[![Code Quality Checks](https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml/badge.svg)](https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml)
-[![Minecraft Version](https://img.shields.io/badge/Minecraft-1.21.6-brightgreen.svg)](https://www.minecraft.net)
-[![Rust Version](https://img.shields.io/badge/rust-1.87.0-blue.svg)](https://www.rust-lang.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p>
+    <a target="_blank" href="https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml"><img src="https://github.com/ObsidiumMC/Obsidium/actions/workflows/checks.yml/badge.svg" alt="Code Quality Checks" /></a>
+    <a target="_blank" href="https://www.minecraft.net"><img src="https://img.shields.io/badge/Minecraft-1.21.6-brightgreen.svg" alt="Minecraft Version" /></a>
+    <a target="_blank" href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.87.0-blue.svg" alt="Rust Version" /></a>
+    <a target="_blank" href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT" /></a>
+    <br />
+    <br />
+    <a target="_blank" href="https://discord.gg/XyKfC4WjUw"><img src="https://dcbadge.limes.pink/api/server/XyKfC4WjUw" alt="Discord Server" /></a>
+</p>
 
 </div>
 
-## Current State: Under Development
+## Current State
 
 Obsidium is currently under heavy development and is not yet ready for gameplay.
 
@@ -49,7 +54,7 @@ If you want to contribute or build the server yourself, you'll need the Rust too
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for more details. For real-time discussion with developers, join our [Discord Server](https://discord.gg/XyKfC4WjUw).
 
 ## License
 

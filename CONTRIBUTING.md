@@ -8,6 +8,8 @@ As noted in our [README](README.md#current-state-under-development), the server 
 
 ## How Can I Contribute?
 
+For real-time discussion, questions, and collaboration with other developers, feel free to join our [Discord Server](https://discord.gg/XyKfC4WjUw).
+
 ### Reporting Bugs
 
 If you find a bug, please open an issue on our [GitHub Issues](https://github.com/ObsidiumMC/Obsidium/issues) page.
