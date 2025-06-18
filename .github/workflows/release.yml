@@ -5,6 +5,9 @@ on:
     branches:
       - master
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build and Release
@@ -31,20 +34,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Fetch all history and tags to enable commit log generation
           fetch-depth: 0
 
       - name: Generate Date-Based Tag and Title
         id: generate_info
         run: |
-          # Generates a tag like '2024-05-21-a1b2c3d'. This is unique.
           DATE_TAG="$(date +'%Y-%m-%d')-$(git rev-parse --short HEAD)"
           echo "DATE_TAG=$DATE_TAG" >> $GITHUB_ENV
-
-          # Generates a release title like 'Release 2024-05-21'
           RELEASE_TITLE="Release $(date +'%Y-%m-%d')"
           echo "RELEASE_TITLE=$RELEASE_TITLE" >> $GITHUB_ENV
-          
           echo "Generated Tag: $DATE_TAG"
           echo "Generated Title: $RELEASE_TITLE"
         shell: bash
@@ -64,16 +62,19 @@ jobs:
         id: prep
         shell: bash
         run: |
-          # Use the environment variable for the tag name
           TAG_NAME="${{ env.DATE_TAG }}"
-          BINARY_NAME="Obsidium${{ matrix.extension }}"
-          RELEASE_NAME="Obsidium-$TAG_NAME-${{ matrix.name }}"
+          # CORRECTED: Use lowercase 'obsidium' to match the crate name
+          BINARY_NAME="obsidium${{ matrix.extension }}"
+          # Corrected: Using lowercase for consistency in asset names
+          RELEASE_NAME="obsidium-$TAG_NAME-${{ matrix.name }}"
           mkdir -p release
+          
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${RELEASE_NAME}${{ matrix.extension }}"
-            echo "asset_path=release/${RELEASE_NAME}${{ matrix.extension }}" >> $GITHUB_OUTPUT
+            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${RELEASE_NAME}${! matrix.extension }}"
+            echo "asset_path=release/${RELEASE_NAME}${! matrix.extension }}" >> $GITHUB_OUTPUT
           else
-            cp "target/${{ matrix.target }}/release/Obsidium" "release/${BINARY_NAME}"
+            # CORRECTED: Use the BINARY_NAME variable instead of a hardcoded name
+            cp "target/${{ matrix.target }}/release/${BINARY_NAME}" "release/${BINARY_NAME}"
             cd release
             tar -czf "${RELEASE_NAME}.tar.gz" "${BINARY_NAME}"
             rm "${BINARY_NAME}"
@@ -85,14 +86,10 @@ jobs:
         id: release_body
         shell: bash
         run: |
-          # This script gets commits since the last tag. In this new model,
-          # the last tag will be from the previous commit, so this should list
-          # the commits included in this specific push.
           LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           if [ -n "$LAST_TAG" ]; then
             COMMITS=$(git log --oneline --no-merges --reverse ${LAST_TAG}..HEAD)
           else
-            # Fallback for the very first commit
             COMMITS=$(git log --oneline --no-merges --reverse)
           fi
           
@@ -112,12 +109,10 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          # Explicitly provide the tag name, release name (title), body, and files
           tag_name: ${{ env.DATE_TAG }}
           name: ${{ env.RELEASE_TITLE }}
           body: ${{ steps.release_body.outputs.body }}
           files: ${{ steps.prep.outputs.asset_path }}
-          # Mark as a pre-release to distinguish from formal, stable releases
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
