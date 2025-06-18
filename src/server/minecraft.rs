@@ -105,16 +105,18 @@ impl MinecraftServer {
     /// Start the server
     pub async fn run(mut self) -> Result<()> {
         tracing::info!("Obsidium Minecraft Server v{}", env!("CARGO_PKG_VERSION"));
+        tracing::debug!("Starting server on {}", self.config.bind_address);
 
         // Create connection sender for the listener
         let (connection_sender, mut connection_receiver) = mpsc::unbounded_channel();
 
         // Start the network listener
         let listener = ServerListener::new(self.config.clone(), connection_sender).await?;
-        let _listener_addr = listener.local_addr()?;
+        let listener_addr = listener.local_addr()?;
+        tracing::debug!("Server listening on {}", listener_addr);
 
         // Spawn listener task
-        let _listener_handle = tokio::spawn(async move {
+        let listener_handle = tokio::spawn(async move {
             if let Err(e) = listener.listen().await {
                 tracing::error!("Listener error: {}", e);
             }
@@ -123,9 +125,24 @@ impl MinecraftServer {
         // Create update timer
         let mut update_timer = interval(Duration::from_millis(50)); // 20 TPS
 
+        tracing::info!("Server started successfully!");
+
         // Main server loop
         loop {
             tokio::select! {
+                // Handle shutdown signal
+                result = tokio::signal::ctrl_c() => {
+                    match result {
+                        Ok(()) => {
+                            tracing::info!("Received Ctrl+C signal, Shutting down server...");
+                        }
+                        Err(e) => {
+                            tracing::error!("Error listening for shutdown signal: {}", e);
+                        }
+                    }
+                    break;
+                }
+
                 // Handle new connections
                 Some(connection) = connection_receiver.recv() => {
                     let players = Arc::clone(&self.players);
@@ -150,6 +167,18 @@ impl MinecraftServer {
                 }
             }
         }
+
+        // Abort the listener task
+        listener_handle.abort();
+        
+        // Log current player count
+        let player_count = self.players.player_count().await;
+        if player_count > 0 {
+            tracing::info!("Disconnecting {} connected player(s)...", player_count);
+        }
+        
+        tracing::info!("Server shutdown complete");
+        Ok(())
     }
 
     /// Handle an individual connection
