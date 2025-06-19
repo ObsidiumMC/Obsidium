@@ -18,7 +18,7 @@
 
 ## Current State
 
-Obsidium is currently under heavy development and is not yet ready for gameplay.
+Obsidium is currently under development and is not yet ready for gameplay.
 
 **What works:**
 -   The server starts and listens for connections.
