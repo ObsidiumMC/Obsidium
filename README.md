@@ -18,7 +18,7 @@
 
 ## Current State
 
-Obsidium is currently under development and is not yet ready for gameplay.
+Obsidium is unfortunately inactive because [I](https://github.com/omarafet/) haven't had much time to work on it. Otherwise, I would love to finish the project... it was created for fun and learning in the end.
 
 **What works:**
 -   The server starts and listens for connections.
